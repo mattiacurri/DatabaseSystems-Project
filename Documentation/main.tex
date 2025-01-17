@@ -1,0 +1,169 @@
+\documentclass[12pt]{book}
+%\usepackage[a4paper, margin=1.2in]{geometry}
+\usepackage[a4paper,top=2cm, bottom=2cm, right=1.9cm, left=1.9cm]{geometry}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb}
+\usepackage[amsmath]{ntheorem}
+\usepackage[bitstream-charter]{mathdesign}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{listings}
+\usepackage{courier}
+\usepackage[hyphens]{url}
+\usepackage{textcomp}
+\usepackage{upquote}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{anyfontsize}
+\usepackage[most]{tcolorbox}
+\usepackage{setspace}
+\usepackage[skip=10pt plus1pt, indent=0pt]{parskip}
+\usepackage{booktabs}
+\usepackage{svg}
+\usepackage{mathtools}
+\usepackage{annotate-equations}
+\usepackage{subcaption}
+\usepackage[leftcaption]{sidecap}
+\usepackage{soul}
+\usepackage{relsize}
+\usepackage{wrapfig}
+\usepackage{marginnote}
+\usepackage{titlesec}
+\usepackage{tabularx}
+\usepackage{fancyhdr}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage[colorlinks=true,linkcolor=black,anchorcolor=black,citecolor=black,filecolor=black,menucolor=black,runcolor=black,urlcolor=black,backref=page]{hyperref}
+%\usepackage{emoji}
+
+% Titlesec configuration
+\titlespacing\section{0pt}{10pt plus 4pt minus 2pt}{10pt plus 4pt minus 2pt}
+\titlespacing\subsection{0pt}{8pt plus 3pt minus 1pt}{8pt plus 3pt minus 1pt}
+
+% Paragraph and spacing configuration
+% \setstretch{1.25}
+% \setlength{\parskip}{0pt}
+% \setlength{\parindent}{0pt} % Disable indentation globally
+
+% colors
+\definecolor{drawgray}{HTML}{666666}
+\definecolor{drawgray_l}{HTML}{F5F5F5}
+\definecolor{drawblue}{HTML}{6C8EBF}
+\definecolor{drawblue_l}{HTML}{DAE8FC}
+\definecolor{drawgreen}{HTML}{82B366}
+\definecolor{drawgreen_l}{HTML}{D5E8D4}
+\definecolor{draworange}{HTML}{D79B00}
+\definecolor{draworange_l}{HTML}{FFE6CC}
+\definecolor{drawyellow}{HTML}{D6B656}
+\definecolor{drawyellow_l}{HTML}{FFF2CC}
+\definecolor{drawred}{HTML}{B85450}
+\definecolor{drawred_l}{HTML}{EA6B66}
+\definecolor{drawviolet}{HTML}{9673A6}
+\definecolor{drawviolet_l}{HTML}{E1D5E7}
+\definecolor{drawblackish}{HTML}{422222}
+
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+
+\lstset{ 
+  language=SQL,
+  morekeywords={AFTER, INSTEAD, OF, REFERENCING, FOR, EACH, ROW, DECLARE, IF, TYPE, NEW, RETURNS, SELF, BEGIN, END, CONSTRUCTOR, UNDER, CONSTRUCTOR, STATIC, INSTANCE, RETURN, OVERRIDING, FINAL, NOT, INSTANTIABLE, UNNEST, MULTISET, ARRAY, COLLECT, METHOD, REF, MEMBER, FUNCTION, PROCEDURE, PRAGMA, RESTRICT_REFERENCES, WNDS, RNDS, TABLE, WITH, ASSIGNMENT, OPTIONS, SCOPE, NESTED, STORE, DEREF, VARRAY, OBJECT},
+  framesep=1pt,
+  xleftmargin=0pt,
+  framexleftmargin=0pt,
+  frame=tb,
+  framerule=1pt,
+  breaklines=true,
+  commentstyle=\color{deepgreen},
+  keywordstyle=\color{deepblue},
+  showstringspaces=false,
+  mathescape
+}
+
+\tcbset {
+  base/.style={
+    breakable,
+    arc=0mm, 
+    bottomtitle=0.5mm,
+    boxrule=0mm,
+    colbacktitle=drawblue_l, 
+    colframe=drawblue,
+    coltitle=black,
+    fonttitle=\bfseries, 
+    left=2.5mm,
+    leftrule=1mm,
+    right=3.5mm,
+    title={#1},
+    toptitle=0.75mm, 
+  }
+}
+
+\newtcolorbox{supportbox}[1]{
+  colframe=drawblue, 
+  base={#1}
+}
+
+\definecolor{brandblue}{rgb}{0.34, 0.7, 1}
+\newtcolorbox{mainbox}[1]{
+colframe=brandblue, 
+base={#1}
+}
+
+\newtcolorbox{subbox}[1]{
+colframe=black!30!white,
+base={#1}
+}
+
+\usepackage[style=0,ntheorem]{mdframed}
+\mdfsetup{%
+topline=false,
+rightline=false,
+bottomline=false,
+linewidth=3pt,
+innerleftmargin=15pt,
+innerrightmargin=0pt,
+skipabove=\baselineskip,
+}
+\newmdtheoremenv[linecolor=drawred]{definition}{Definition}[chapter]
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=drawblackish,
+    breaklinks=true,
+    citecolor = drawblackish,
+    urlcolor=drawblue,
+}
+
+% 1.15 spacing
+\setstretch{1.15}
+
+% Fancy header
+\usepackage{fancyhdr}
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+\renewcommand{\sectionmark}[1]{\markright{#1}}
+\fancyhead{} % clear all header fields
+\fancyhead[LE]{{\color{black!40}\thepage}}
+\fancyhead[RE]{\bfseries\normalfont {\color{black!40}\nouppercase{\rightmark}}}
+\fancyhead[LO]{\bfseries\normalfont {\color{black!40}\nouppercase{Chapter \thechapter: \leftmark}}}
+\fancyhead[RO]{{\color{black!40}\thepage}}
+
+% Chapter title
+\usepackage{titlesec, blindtext, color}
+\definecolor{gray75}{gray}{0.75}
+\newcommand{\hsp}{\hspace{20pt}}
+\titleformat{\chapter}[hang]{\Huge\bfseries}{\selectfont \thechapter\hsp\textcolor{green}{|}\hsp}{0pt}{\Huge\bfseries}
+
+
+\begin{document}
+
+% \captionsetup[figure]{margin=1.5cm,font=small,labelfont={bf},name={Figure},labelsep=colon,textfont={it}}
+% \captionsetup[table]{margin=1.5cm,font=small,labelfont={bf},name={Table},labelsep=colon,textfont={it}}
+
+\input{front}
+\restoregeometry
+
+\tableofcontents
+\newpage
+\pagestyle{fancy}
+
+\end{document}
