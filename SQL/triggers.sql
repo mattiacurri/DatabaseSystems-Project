@@ -1,30 +1,79 @@
-CREATE OR REPLACE TRIGGER CheckCompletionDate
+CREATE OR REPLACE TRIGGER CheckOrderInsertOrUpdate
 BEFORE INSERT OR UPDATE ON OrderTB
 FOR EACH ROW
+DECLARE
+    cnt NUMBER;
 BEGIN
-    IF :NEW.completionDate < :NEW.placingDate THEN
+    -- * FUNZIONA
+    IF :NEW.completionDate IS NOT NULL AND :NEW.placingDate IS NOT NULL AND
+       :NEW.completionDate < :NEW.placingDate THEN
         RAISE_APPLICATION_ERROR(-20000, 'Completion date cannot be before order date');
     END IF;
 
+    -- * FUNZIONA 
     IF :NEW.completionDate IS NULL THEN
         IF :NEW.feedback IS NOT NULL THEN
             RAISE_APPLICATION_ERROR(-20001, 'Feedback cannot be given without completion date');
         END IF;
     END IF;
 
-    IF :NEW.feedback.score IS NOT NULL THEN
-        IF :NEW.feedback.score < 1 OR :NEW.feedback.score > 5 THEN
-            RAISE_APPLICATION_ERROR(-20002, 'Feedback score must be between 1 and 5');
+    -- ! Posso mettere 5.4, viene salvato come 5 quindi non parte
+    IF :NEW.feedback IS NOT NULL AND :NEW.feedback.score IS NOT NULL AND 
+       (:NEW.feedback.score < 1 OR :NEW.feedback.score > 5) THEN
+        RAISE_APPLICATION_ERROR(-20002, 'Feedback score must be between 1 and 5');
+    END IF;
+
+    -- * FUNZIONA
+    IF INSERTING THEN
+        IF :NEW.team IS NULL AND :NEW.completionDate IS NOT NULL THEN
+            RAISE_APPLICATION_ERROR(-20010, 'Team must be assigned before completion date');
         END IF;
     END IF;
 
-    -- TODO: capire se mettere, però solo per update su completiondate, altrimenti blocco i cambiamenti per aggiungere i feedback
-    ---IF :OLD.completionDate IS NOT NULL THEN
-        --RAISE_APPLICATION_ERROR(-20001, 'Order already completed');
-    --END IF;
+    -- * FUNZIONA
+    IF UPDATING THEN
+        IF :OLD.completionDate IS NOT NULL AND 
+           ((:OLD.team IS NULL AND :NEW.team IS NOT NULL) OR
+            (:OLD.team IS NOT NULL AND :NEW.team IS NULL) OR
+            (:OLD.team IS NOT NULL AND :NEW.team IS NOT NULL AND :NEW.team <> :OLD.team)) THEN
+            RAISE_APPLICATION_ERROR(-20011, 'Team cannot be changed after order completion');
+        END IF;
+    END IF;
+
+    -- * FUNZIONA
+    IF :NEW.employees IS NOT NULL AND :NEW.employees.COUNT > 0 AND :NEW.team IS NOT NULL THEN
+        SELECT COUNT(*) INTO cnt FROM TABLE(:NEW.employees) emp_ref
+        JOIN EmployeeTB e ON (emp_ref.column_value = REF(e))
+        WHERE e.team <> :NEW.team;
+
+        IF cnt > 0 THEN
+            RAISE_APPLICATION_ERROR(-20007, 'Employee of a different team in the same order detected');
+        END IF;
+    END IF;
+
+    -- TODO: no update of varray employee if order is completed
+    -- IF :NEW.employees IS NOT NULL AND :NEW.employees.COUNT > 0 THEN
+    --     IF :OLD.completionDate IS NOT NULL THEN
+    --         RAISE_APPLICATION_ERROR(-20008, 'Employees cannot be changed after order completion');
+    --     END IF;
+    -- END IF;
+    
+    -- * FUNZIONA
+    IF :NEW.team IS NULL AND :NEW.employees IS NOT NULL AND :NEW.employees.COUNT > 0 THEN
+        SELECT e.team INTO :NEW.team
+        FROM TABLE(:NEW.employees) emp_ref
+        JOIN EmployeeTB e ON (emp_ref.column_value = REF(e))
+        FETCH FIRST 1 ROW ONLY;
+    END IF;
+
+    -- * FUNZIONA
+    IF :NEW.completionDate IS NULL AND :NEW.feedback IS NOT NULL THEN
+        RAISE_APPLICATION_ERROR(-20010, 'Feedback must be given after completion date');
+    END IF;
 END;
 /
 
+-- * FUNZIONA
 CREATE OR REPLACE TRIGGER CheckCustomerType
 BEFORE INSERT OR UPDATE ON CustomerTB
 FOR EACH ROW
@@ -50,82 +99,7 @@ BEGIN
 END;
 /
 
--- CREATE OR REPLACE TRIGGER CheckOrderEmployee
--- BEFORE INSERT OR UPDATE ON OrderTB
--- FOR EACH ROW
--- DECLARE
---     employee_team TeamTY;
---     order_team TeamTY;
---     v_emp_name VARCHAR2(40);
--- BEGIN
---     IF :NEW.team IS NOT NULL THEN
---         FOR i IN 1..:NEW.employees.COUNT LOOP
---             SELECT DEREF(e.team) INTO employee_team 
---             FROM EmployeeTB e
---             WHERE REF(e) = :NEW.employees(i);
-
---             SELECT DEREF(:NEW.team) INTO order_team FROM DUAL;
-
---             IF employee_team.ID != order_team.ID THEN
---                 SELECT e.name || ' ' || e.surname INTO v_emp_name
---                 FROM EmployeeTB e
---                 WHERE REF(e) = :NEW.employees(i);
---                 RAISE_APPLICATION_ERROR(-20007, 'Employee ' || v_emp_name || ' is not in the same team of the order');
---             END IF;
---         END LOOP;
---     END IF;
--- END;
--- /
-
--- CREATE OR REPLACE TRIGGER CheckOrderEmployee
--- BEFORE INSERT OR UPDATE ON OrderTB
--- FOR EACH ROW
--- DECLARE
---     v_emp_name VARCHAR2(40);
--- BEGIN
---     IF :NEW.team IS NOT NULL AND :NEW.employees IS NOT NULL THEN
---         -- Verifica se almeno un employee non appartiene al team dell'ordine
---         BEGIN
---             SELECT e.name || ' ' || e.surname INTO v_emp_name
---             FROM TABLE(:NEW.employees) emp_ref
---             JOIN EmployeeTB e ON (emp_ref.column_value = REF(e))
---             WHERE e.team <> :NEW.team
---             FETCH FIRST 1 ROW ONLY;  -- Interrompe alla prima occorrenza
-            
---             RAISE_APPLICATION_ERROR(-20007, 'Employee ' || v_emp_name || ' is not in the same team of the order');
---         EXCEPTION
---             WHEN NO_DATA_FOUND THEN
---                 NULL; -- Tutti gli employee sono nel team corretto
---         END;
---     END IF;
--- END;
--- /
-
-CREATE OR REPLACE TRIGGER CheckOrderEmployee
-BEFORE INSERT OR UPDATE ON OrderTB
-FOR EACH ROW
-DECLARE
-    cnt NUMBER;
-BEGIN
-    SELECT COUNT(*) INTO cnt FROM TABLE(:NEW.employees) emp_ref
-    JOIN EmployeeTB e ON (emp_ref.column_value = REF(e))
-    WHERE e.team <> :NEW.team;
-
-    IF cnt > 0 THEN
-        RAISE_APPLICATION_ERROR(-20007, 'Employee of different team in the same order detected');
-    END IF;
-
-    -- TODO: rivedere
-    -- IF TEAM IS NULL AND WE ARE INSERTING AN EMPLOYEE THEN SET TEAM TO EMPLOYEE TEAM
-    IF :NEW.team IS NULL AND :NEW.employees IS NOT NULL THEN
-        SELECT e.team INTO :NEW.team
-        FROM TABLE(:NEW.employees) emp_ref
-        JOIN EmployeeTB e ON (emp_ref.column_value = REF(e))
-        FETCH FIRST 1 ROW ONLY;
-    END IF;
-END;
-/
-
+-- * FUNZIONA
 CREATE OR REPLACE TRIGGER UpdateNumOrdersAfterInsert
 AFTER INSERT ON OrderTB
 FOR EACH ROW
@@ -141,42 +115,38 @@ BEGIN
 END;
 /
 
--- CREATE OR REPLACE TRIGGER PreventEmpInsertBeforeTeam
--- AFTER INSERT OR UPDATE ON OrderTB
--- FOR EACH ROW
--- BEGIN
---     IF :NEW.team IS NULL AND :NEW.employees IS NOT NULL THEN
---         FOR i IN 1..:NEW.employees.COUNT LOOP
---             IF :NEW.employees(i) IS NOT NULL THEN
---                 RAISE_APPLICATION_ERROR(-20008, 'Employee cannot be inserted before the team');
---             END IF;
---         END LOOP;
---     END IF;
--- END;
--- /
+-- * FUNZIONA
+CREATE OR REPLACE TRIGGER UpdateNumOrdersAfterDelete
+AFTER DELETE ON OrderTB
+FOR EACH ROW
+DECLARE
+    v_team TeamTY;
+BEGIN
+    IF :NEW.team IS NOT NULL THEN
+        SELECT DEREF(:OLD.team) INTO v_team FROM DUAL;
+        UPDATE TeamTB
+        SET numOrder = numOrder - 1
+        WHERE ID = v_team.ID;
+    END IF;
+END;
+/
 
--- TODO: attenzione rivedere
--- CREATE OR REPLACE TRIGGER UpdateNumOrdersAfterDelete
--- AFTER DELETE ON OrderTB
--- FOR EACH ROW
--- DECLARE
---     v_team TeamTY;
--- BEGIN
---     SELECT DEREF(:OLD.team) INTO v_team FROM DUAL;
---     UPDATE TeamTB
---     SET numOrder = numOrder - 1
---     WHERE ID = v_team.ID;
--- END;
--- /
-
+-- * FUNZIONA
 CREATE OR REPLACE TRIGGER UpdateNumOrdersAfterUpdate
-AFTER UPDATE ON OrderTB
+AFTER UPDATE OF team ON OrderTB
 FOR EACH ROW
 DECLARE
     v_old_team TeamTY;
     v_new_team TeamTY;
 BEGIN
-    IF :OLD.team IS NOT NULL AND :NEW.team IS NOT NULL THEN
+    IF :OLD.team IS NULL AND :NEW.team IS NOT NULL THEN
+        -- New team assigned
+        SELECT DEREF(:NEW.team) INTO v_new_team FROM DUAL;
+        UPDATE TeamTB
+        SET numOrder = numOrder + 1
+        WHERE ID = v_new_team.ID;
+    ELSIF :OLD.team IS NOT NULL AND :NEW.team IS NOT NULL THEN
+        -- Team changed
         SELECT DEREF(:OLD.team) INTO v_old_team FROM DUAL;
         SELECT DEREF(:NEW.team) INTO v_new_team FROM DUAL;
         
@@ -189,11 +159,18 @@ BEGIN
             SET numOrder = numOrder + 1
             WHERE ID = v_new_team.ID;
         END IF;
+    ELSIF :OLD.team IS NOT NULL AND :NEW.team IS NULL THEN
+        -- Team removed
+        SELECT DEREF(:OLD.team) INTO v_old_team FROM DUAL;
+        UPDATE TeamTB
+        SET numOrder = numOrder - 1
+        WHERE ID = v_old_team.ID;
     END IF;
 END;
 /
 
-CREATE OR REPLACE TRIGGER ComputeNumOrdersBeforeTeamInsert
+-- * FUNZIONA
+CREATE OR REPLACE TRIGGER TeamInsertInitialization
 BEFORE INSERT ON TeamTB
 FOR EACH ROW
 BEGIN
@@ -202,62 +179,25 @@ BEGIN
 END;
 /
 
-CREATE OR REPLACE TRIGGER CheckMaximumNumberEmployees
-BEFORE INSERT OR UPDATE OF team ON EmployeeTB
-FOR EACH ROW
-DECLARE
-    v_numEmployees NUMBER;
+-- TODO: cambiarlo un po'
+create or replace trigger check_team_num
+for insert or update of team on EmployeeTB
+compound trigger
+    team_count number;
+    team_ref REF TeamTY;
+BEFORE EACH ROW IS
 BEGIN
-    IF :NEW.team IS NOT NULL THEN
-        SELECT COUNT(*) INTO v_numEmployees
-        FROM EmployeeTB
-        WHERE team = :NEW.team;
+    team_ref := :New.team;
+END BEFORE EACH ROW;
 
-        IF v_numEmployees > 7 THEN
-            RAISE_APPLICATION_ERROR(-20009, 'Maximum number of employees reached');
-        END IF;
-    END IF;
-END;
-/
-
--- ! Mutating table
--- CREATE OR REPLACE TRIGGER DeleteEmptyTeam
--- AFTER DELETE ON EmployeeTB
--- FOR EACH ROW
--- DECLARE
---     v_team TeamTY;
---     v_numEmployees NUMBER;
--- BEGIN
---     SELECT DEREF(:OLD.team) INTO v_team FROM DUAL;
---     SELECT COUNT(*) INTO v_numEmployees
---     FROM EmployeeTB
---     WHERE team = :OLD.team;
-
---     IF v_numEmployees = 0 THEN
---         DELETE FROM TeamTB
---         WHERE ID = v_team.ID;
---     END IF;
--- END;
-/
-
-CREATE OR REPLACE TRIGGER CheckTeamBeforeCompletionDate
-BEFORE INSERT OR UPDATE OF completionDate ON OrderTB
-FOR EACH ROW
+AFTER STATEMENT IS
 BEGIN
-    IF :NEW.team IS NULL THEN
-        RAISE_APPLICATION_ERROR(-20010, 'Team must be assigned before completion date');
-    END IF;
-END;
-/
-
-CREATE OR REPLACE TRIGGER CheckIfCompletedBeforeFeedback
-BEFORE INSERT OR UPDATE OF feedback ON OrderTB
-FOR EACH ROW
-BEGIN
-    IF :NEW.completionDate IS NULL AND :NEW.feedback IS NOT NULL THEN
-        RAISE_APPLICATION_ERROR(-20010, 'Feedback cannot be given without completion date');
-    END IF;
-END;
+    select count (*) into team_count from EmployeeTB e where e.team = team_ref;
+    if (team_count > 8) then
+         RAISE_APPLICATION_ERROR(-20001, 'Max number of employee reached');
+    end if;
+end after statement;
+end;
 /
 
 -- TODO: FIX
@@ -275,117 +215,174 @@ BEGIN
             WHERE ID = v_team.ID;
         END IF;
 
+        -- ! ROTTO ROTTISSIMO
         IF UPDATING THEN
-            UPDATE TeamTB t
-            SET t.performanceScore = ((t.performanceScore * t.numOrder) - :OLD.feedback.score + :NEW.feedback.score) / t.numOrder
-            WHERE ID = v_team.ID;
+            IF :OLD.feedback.score IS NULL THEN
+                UPDATE TeamTB t
+                SET t.performanceScore = ((t.performanceScore * t.numOrder) + :NEW.feedback.score) / (t.numOrder + 1)
+                WHERE ID = v_team.ID;
+            ELSE
+                UPDATE TeamTB t
+                SET t.performanceScore = ((t.performanceScore * t.numOrder) - :OLD.feedback.score + :NEW.feedback.score) / t.numOrder
+                WHERE ID = v_team.ID;
+            END IF;
         END IF;
     END IF;
 END;
 /
 
--- TODO: aggiustare
--- CREATE OR REPLACE TRIGGER AddAccount
--- AFTER INSERT ON CustomerTB
--- FOR EACH ROW
--- DECLARE
---     x Ref CustomerTY;
+-- * FUNZIONA
+create or replace trigger AddAccount
+for insert on CustomerTB
+compound trigger
+    customer VARCHAR2(11);
+BEFORE EACH ROW IS
+BEGIN
+    customer := :NEW.VAT;
+END BEFORE EACH ROW;
+
+AFTER STATEMENT IS
+BEGIN
+    insert into BusinessAccountTB values (
+        'B' || TO_CHAR(DBMS_RANDOM.value(100000000, 999999999), 'FM000000000'),
+        sysdate, 
+        (SELECT REF(c) FROM CustomerTB c WHERE c.VAT = customer)
+    );
+end after statement;
+end;
+/
+
+-- ! Mutating
+-- CREATE OR REPLACE TRIGGER CheckOperationalCenterBeforeDelete
+-- FOR DELETE ON OperationalCenterTB
+-- COMPOUND TRIGGER
+--     v_center VARCHAR2(50);
+-- BEFORE EACH ROW IS
 -- BEGIN
---     DBMS_OUTPUT.PUT_LINE(:NEW.VAT);
---     SELECT MAKE_REF(CustomerTB, :NEW.VAT) INTO x FROM DUAL;
---     INSERT INTO BusinessAccountTB VALUES (BusinessAccountTY(
---         'B' || TO_CHAR(ROUND(DBMS_RANDOM.VALUE(100000000, 999999999)), 'FM000000000'),
---         SYSDATE,
---         x
---     ));  
+--     v_center := :OLD.name;
+-- END BEFORE EACH ROW;
+
+-- AFTER STATEMENT IS
+--     cnt NUMBER;
+-- BEGIN
+--     SELECT COUNT(*) INTO cnt 
+--     FROM TeamTB t 
+--     WHERE DEREF(t.operationalCenter).name = v_center;
+    
+--     IF cnt > 0 THEN
+--         RAISE_APPLICATION_ERROR(-20009, 'Cannot delete operational center with active teams');
+--     END IF;
+-- END AFTER STATEMENT;
 -- END;
 -- /
 
--- TODO: aggiustare
--- CREATE OR REPLACE TRIGGER ClearEmployeeAfterTeamUpdate
--- BEFORE UPDATE OF team ON OrderTB
--- FOR EACH ROW
+-- ! Mutating
+-- CREATE OR REPLACE TRIGGER CheckTeamBeforeDelete
+-- for DELETE ON TeamTB
+-- compound TRIGGER
+--     v_team VARCHAR2(50);
+--     cnt NUMBER;
+-- BEFORE EACH ROW IS 
 -- BEGIN
---     IF :NEW.team IS NOT NULL THEN
---         UPDATE OrderTB
---         SET employees = NULL
---         WHERE ID = :NEW.ID;
+--     v_team := :OLD.ID;
+-- END BEFORE EACH ROW;
+
+-- AFTER STATEMENT IS
+-- BEGIN
+--     SELECT COUNT(*) INTO cnt 
+--     FROM EmployeeTB e
+--     WHERE e.team = (SELECT REF(t) FROM TeamTB t WHERE t.ID = v_team);
+--     dbms_output.put_line('Old team: ' || v_team || ' Count: ' || cnt);
+--     IF cnt > 0 THEN
+--         RAISE_APPLICATION_ERROR(-20012, 'Cannot delete team with employees');
+--     END IF;
+-- END AFTER STATEMENT;
+-- END;
+
+-- CREATE OR REPLACE TRIGGER CheckTeamBeforeDelete
+-- for DELETE ON TeamTB
+-- compound TRIGGER
+--     v_team VARCHAR2(50);
+--     cnt NUMBER;
+--     ref_team REF TeamTY;
+-- BEFORE EACH ROW IS 
+-- BEGIN
+--     v_team := :OLD.ID;
+-- END BEFORE EACH ROW;
+
+-- AFTER STATEMENT IS
+-- BEGIN
+--     SELECT COUNT(*) INTO cnt 
+--     FROM TeamTB t, EmployeeTB e 
+--     WHERE t.ID = v_team 
+--     AND REF(t) = e.team;
+
+--     IF cnt > 0 THEN
+--         RAISE_APPLICATION_ERROR(-20012, 'Cannot delete team with employees');
+--     END IF;
+-- END AFTER STATEMENT;
+-- END;
+
+--     -- For every linked order, deref the team
+--     UPDATE OrderTB O
+--     SET team = NULL
+--     WHERE O.team = MAKE_REF(TeamTB, :OLD.ID);
+-- END;
+/
+
+-- ? ELIMINO UN BUSINESS ACCOUNT == DUMMY BUSINESS SUGLI ORDINI
+-- ! Mutating
+-- CREATE OR REPLACE TRIGGER CheckBusinessAccountBeforeDelete
+-- for DELETE ON BusinessAccountTB
+-- compound TRIGGER
+-- DECLARE
+--     v_ba VARCHAR2(10);
+--     x NUMBER;
+-- BEFORE EACH ROW IS
+-- BEGIN
+--     v_oc := :OLD.CODE;
+-- END BEFORE EACH ROW;
+
+-- AFTER STATEMENT IS
+--     -- Check if dummy business account exists
+--     IF :OLD.CODE = 'B000000000' THEN
+--         RAISE_APPLICATION_ERROR(-20013, 'Cannot delete dummy business account');
+--     END IF;
+
+--     -- Check if dummy business account is in the business account table
+--     SELECT COUNT(*) INTO x FROM BusinessAccountTB WHERE CODE = 'B000000000';
+--     IF x = 0 THEN
+--         RAISE_APPLICATION_ERROR(-20014, 'Dummy business account not found');
+--     END IF;
+
+--     -- For every linked order, place a dummy business account
+--     -- TODO: CONTROLLARE
+--     UPDATE OrderTB O 
+--     SET businessAccount = (SELECT REF(ba) FROM BusinessAccountTB ba WHERE ba.CODE = 'B000000000')
+--     WHERE O.businessAccount = MAKE_REF(BusinessAccountTB, :OLD.CODE);
+-- END AFTER STATEMENT;
+-- END;
+/
+
+-- ! Mutating
+-- CREATE OR REPLACE TRIGGER CheckCustomerBeforeDelete
+-- BEFORE DELETE ON CustomerTB
+-- FOR EACH ROW
+-- DECLARE
+--     v_numBusinessAccounts NUMBER;
+-- BEGIN
+--     SELECT COUNT(*) INTO v_numBusinessAccounts
+--     FROM BusinessAccountTB ba
+--     WHERE DEREF(ba.customer).VAT = :OLD.VAT;
+
+--     IF v_numBusinessAccounts > 0 THEN
+--         RAISE_APPLICATION_ERROR(-20015, 'Customer has business accounts');
 --     END IF;
 -- END;
 -- /
 
-CREATE OR REPLACE TRIGGER CheckOperationalCenterBeforeDelete
-BEFORE DELETE ON OperationalCenterTB
-FOR EACH ROW
-DECLARE
-    v_numTeams NUMBER;
-BEGIN
-    SELECT COUNT(*) INTO v_numTeams
-    FROM TeamTB t
-    WHERE DEREF(t.operationalCenter).name = :OLD.name;
-
-    IF v_numTeams > 0 THEN
-        RAISE_APPLICATION_ERROR(-20011, 'Operational center has teams');
-    END IF;
-END;
-/
-
-CREATE OR REPLACE TRIGGER CheckTeamBeforeDelete
-BEFORE DELETE ON TeamTB
-FOR EACH ROW
-DECLARE
-    v_numEmployee NUMBER;
-BEGIN
-    SELECT COUNT(*) INTO v_numEmployee
-    FROM EmployeeTB e
-    WHERE DEREF(e.team).ID = :OLD.ID;
-
-    IF v_numEmployee > 0 THEN
-        RAISE_APPLICATION_ERROR(-20012, 'Team has employees');
-    END IF;
-END;
-/
-
-CREATE OR REPLACE TRIGGER CheckBusinessAccountBeforeDelete
-BEFORE DELETE ON BusinessAccountTB
-FOR EACH ROW
-DECLARE
-    x NUMBER;
-BEGIN
-    -- Check if dummy business account exists
-    IF :OLD.CODE = 'B000000000' THEN
-        RAISE_APPLICATION_ERROR(-20013, 'Cannot delete dummy business account');
-    END IF;
-
-    -- Check if dummy business account is in the business account table
-    SELECT COUNT(*) INTO x FROM BusinessAccountTB WHERE CODE = 'B000000000';
-    IF x = 0 THEN
-        RAISE_APPLICATION_ERROR(-20014, 'Dummy business account not found');
-    END IF;
-
-    -- For every linked order, place a dummy business account
-    UPDATE OrderTB O 
-    SET businessAccount = (SELECT REF(ba) FROM BusinessAccountTB ba WHERE ba.CODE = 'B000000000')
-    WHERE O.businessAccount = MAKE_REF(BusinessAccountTB, :OLD.CODE);
-END;
-/
-
-CREATE OR REPLACE TRIGGER CheckCustomerBeforeDelete
-BEFORE DELETE ON CustomerTB
-FOR EACH ROW
-DECLARE
-    v_numBusinessAccounts NUMBER;
-BEGIN
-    SELECT COUNT(*) INTO v_numBusinessAccounts
-    FROM BusinessAccountTB ba
-    WHERE DEREF(ba.customer).VAT = :OLD.VAT;
-
-    IF v_numBusinessAccounts > 0 THEN
-        RAISE_APPLICATION_ERROR(-20015, 'Customer has business accounts');
-    END IF;
-END;
-/
-
+-- ? ELIMINO UN EMPLOYEE == DEREF SU ORDERTB
+-- TODO: TESTARE
 -- CREATE OR REPLACE TRIGGER CheckEmployeeBeforeDelete
 -- BEFORE DELETE ON EmployeeTB
 -- FOR EACH ROW
@@ -394,7 +391,7 @@ END;
 -- BEGIN
 --     SELECT REF(e) INTO v_old_emp
 --     FROM EmployeeTB e
---     WHERE e.ID = :OLD.ID;
+--     WHERE e.FC = :OLD.FC;
 
 --     UPDATE OrderTB O
 --     SET employees = (
@@ -406,5 +403,60 @@ END;
 --         SELECT column_value
 --         FROM TABLE(O.employees)
 --     );
+-- END;
+-- /
+
+-- * FUNZIONA
+CREATE OR REPLACE TRIGGER DummyBusinessAccountCheck
+BEFORE UPDATE OR DELETE ON BusinessAccountTB
+FOR EACH ROW
+BEGIN
+    IF :OLD.CODE = 'B000000000' THEN
+        RAISE_APPLICATION_ERROR(-20016, 'Cannot modify dummy business account');
+    END IF;
+END;
+/
+
+-- * FUNZIONA
+CREATE OR REPLACE TRIGGER DummyCustomerAccountCheck
+BEFORE UPDATE OR DELETE ON CustomerTB
+FOR EACH ROW
+BEGIN
+    IF :OLD.VAT = '00000000000' THEN
+        RAISE_APPLICATION_ERROR(-20017, 'Cannot modify dummy customer account');
+    END IF;
+END;
+/
+
+-- ! Testare meglio, l'else parte
+-- CREATE OR REPLACE TRIGGER CheckOrderDeletion
+-- BEFORE DELETE ON OrderTB
+-- FOR EACH ROW
+-- DECLARE
+--     v_team TeamTY;
+--     v_businessAccount BusinessAccountTY;
+-- BEGIN
+--     -- take the id of businessa ccount on old table
+--     select DEREF(:OLD.businessAccount) INTO v_businessAccount FROM DUAL;
+
+--     -- Case 1: Order has no team, dummy business account, and no employees
+--     IF :OLD.team IS NULL AND 
+--        v_businessAccount.CODE = 'B000000000' AND 
+--        :OLD.employees IS NULL THEN
+--         null; -- Do nothing, the delete can proceed
+
+--     -- Case 2: Order is completed, has no feedback, no team, no employees and dummy business account  
+--     ELSIF :OLD.completionDate IS NOT NULL AND
+--           :OLD.feedback IS NULL AND
+--           :OLD.team IS NULL AND 
+--           :OLD.employees IS NULL AND
+--           v_businessAccount.CODE = 'B000000000' THEN
+--         null;
+--         --DELETE FROM OrderTB WHERE ID = :OLD.ID;
+
+--     -- All other cases - deletion not allowed
+--     ELSE
+--         RAISE_APPLICATION_ERROR(-20018, 'Cannot delete order. Order must have no team, no employees and use dummy business account');
+--     END IF;
 -- END;
 -- /
