@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Teams Ranking</h2>
+{% if error %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+<table class="table table-striped w-100">
+    <thead class="table-dark">
+        <tr>
+            <th>Team ID</th>
+            <th>Performance Score</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for team in teams %}
+        <tr>
+            <td>{{ team[0] }}</td>
+            <td>{{ team[1] }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Pagination controls -->
+<div class="d-flex justify-content-between">
+    <a href="{{ url_for('teams_list', offset=offset-num_rows) }}" 
+       class="btn btn-primary {% if offset == 0 %}disabled{% endif %}">
+        Previous
+    </a>
+    
+    <a href="{{ url_for('teams_list', offset=offset+num_rows) }}" 
+       class="btn btn-primary {% if not has_next %}disabled{% endif %}">
+        Next
+    </a>
+</div>
+{% endblock %}

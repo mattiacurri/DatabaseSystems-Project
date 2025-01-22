@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Register Customer</h2>
+{% if error %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+{% if success %}
+<div class="alert alert-success mt-3">{{ success }}</div>
+{% endif %}
+
+<form method="POST" class="form-section">
+    <!-- Campi base -->
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label class="form-label">VAT (11 characters)</label>
+            <input type="text" class="form-control" name="vat" pattern=".{11,11}" title="VAT must be exactly 11 characters" required>
+        </div>
+        
+        <div class="col-md-4">
+            <label class="form-label">Phone</label>
+            <input type="tel" class="form-control" name="phone" required>
+        </div>
+        
+        <div class="col-md-4">
+            <label class="form-label">Email (max 50 characters)</label>
+            <input type="email" class="form-control" name="email" maxlength="50" required>
+        </div>
+    </div>
+
+    <!-- Tipo cliente -->
+    <div class="mb-3">
+        <label class="form-label">Customer Type</label>
+        <select class="form-select" name="type" id="customerType" required>
+            <option value="individual">Individual</option>
+            <option value="business">Business</option>
+        </select>
+    </div>
+
+    <!-- Campi Individuale -->
+    <div id="individualFields">
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label class="form-label">Name</label>
+                <input type="text" class="form-control" name="name">
+            </div>
+            
+            <div class="col-md-4">
+                <label class="form-label">Surname</label>
+                <input type="text" class="form-control" name="surname">
+            </div>
+            
+            <div class="col-md-4">
+                <label class="form-label">Date of Birth</label>
+                <input type="date" class="form-control" name="dob">
+            </div>
+        </div>
+    </div>
+
+    <!-- Campi Business -->
+    <div id="businessFields" style="display: none;">
+        <div class="mb-3">
+            <label class="form-label">Company Name</label>
+            <input type="text" class="form-control" name="companyName">
+        </div>
+        
+        <!-- Indirizzo Completo solo per business -->
+        <div class="border p-3 mb-4">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Street</label>
+                    <input type="text" class="form-control" name="street">
+                </div>
+                
+                <div class="col-md-2">
+                    <label class="form-label">Civic Number</label>
+                    <input type="number" class="form-control" name="civicNum">
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label class="form-label">City</label>
+                    <input type="text" class="form-control" name="city">
+                </div>
+                
+                <div class="col-md-4">
+                    <label class="form-label">Province</label>
+                    <input type="text" class="form-control" name="province">
+                </div>
+                
+                <div class="col-md-4">
+                    <label class="form-label">Region</label>
+                    <input type="text" class="form-control" name="region">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4">
+                    <label class="form-label">State</label>
+                    <input type="text" class="form-control" name="state">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-3">
+        <button type="submit" class="btn btn-primary">Register Customer</button>
+    </div>
+</form>
+
+{% if business_account %}
+<div class="alert alert-info mt-4">
+    <h4>Customer Successfully Registered</h4>
+    <p>Your new business account code is: {{ business_account }}</p>
+</div>
+{% endif %}
+
+<script>
+document.getElementById('customerType').addEventListener('change', function() {
+    const type = this.value;
+    document.getElementById('individualFields').style.display = type === 'individual' ? 'block' : 'none';
+    document.getElementById('businessFields').style.display = type === 'business' ? 'block' : 'none';
+    
+    // Aggiorna i campi obbligatori
+    const individualRequired = type === 'individual';
+    document.querySelectorAll('#individualFields input').forEach(input => {
+        input.required = individualRequired;
+    });
+    
+    const businessRequired = type === 'business';
+    document.querySelectorAll('#businessFields input').forEach(input => {
+        input.required = businessRequired;
+    });
+});
+</script>
+{% endblock %}

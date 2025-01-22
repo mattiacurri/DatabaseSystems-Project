@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Assign Order to Team</h2>
+{% if error %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+{% if success %}
+<div class="alert alert-success mt-3">{{ success }}</div>
+{% endif %}
+
+<form method="POST">
+    <div class="mb-3">
+        <label class="form-label">Order ID</label>
+        <select class="form-select" name="order_id" required>
+            <option value="">Choose an order...</option>
+            {% for order in orders %}
+            <option value="{{ order }}">{{ order }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Team ID</label>
+        <select class="form-select" name="team_id" required>
+            <option value="">Choose a team...</option>
+            {% for team in teams %}
+            <option value="{{ team }}">{{ team }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Assign Order</button>
+</form>
+{% endblock %}

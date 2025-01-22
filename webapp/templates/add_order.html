@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Add New Order</h2>
+{% if error %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+{% if success %}
+<div class="alert alert-success mt-3">
+    {{ success }}
+</div>
+{% endif %}
+
+<form method="POST">
+    <div class="mb-3">
+        <label class="form-label">Order ID (OXXXXXXXXX)</label>
+        <input type="text" class="form-control" name="order_id" pattern="^O\d{9}$" required>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Placing Date</label>
+        <input type="date" class="form-control" name="placing_date" required>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Order Mode</label>
+        <select class="form-select" name="order_mode" required>
+            <option value="online">Online</option>
+            <option value="phone">Phone</option>
+            <option value="email">Email</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Order Type</label>
+        <select class="form-select" name="order_type" required>
+            <option value="regular">Regular</option>
+            <option value="urgent">Urgent</option>
+            <option value="bulk">Bulk</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Cost</label>
+        <input type="number" class="form-control" name="cost" step="0.01" min="0" required>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Business Account</label>
+        <select class="form-select" name="business_account" required>
+            <option value="">Choose an account...</option>
+            {% for account in business_accounts %}
+            <option value="{{ account }}">{{ account }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Add Order</button>
+</form>
+
+{% endblock %}
