@@ -86,6 +86,13 @@ def add_order():
             # Recupera i dati del form
             order_id = request.form['order_id']
             placing_date = datetime.strptime(request.form['placing_date'], '%Y-%m-%d').date()
+
+            guid = False            
+            if order_id == "":
+                # execute sys_guid() to get a unique identifier 
+                cursor.execute("SELECT RAWTOHEX(SYS_GUID()) FROM dual")
+                order_id = cursor.fetchone()[0]
+                guid = True
             
             cursor.callproc('addOrder', [
                 order_id,
@@ -100,6 +107,8 @@ def add_order():
             # Get business accounts before rendering template
             cursor.execute("SELECT CODE FROM BusinessAccountTB")
             business_accounts = [row[0] for row in cursor.fetchall()]
+            if guid:
+                return render_template('add_order.html', success="Order added successfully! Order ID: " + order_id, business_accounts=business_accounts)
             return render_template('add_order.html', success="Order added successfully!", business_accounts=business_accounts)
             
         except oracledb.DatabaseError as e:
@@ -274,10 +283,6 @@ def teams_list():
     finally:
         cursor.close()
         conn.close()
-
-@app.route('/success')
-def success():
-    return render_template('success.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

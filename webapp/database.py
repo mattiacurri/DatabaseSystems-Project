@@ -1,4 +1,4 @@
-import oracledb  # Sostituisci cx_Oracle
+import oracledb
 
 def get_connection():
     connection = oracledb.connect(

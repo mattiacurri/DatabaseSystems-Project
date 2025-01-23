@@ -14,8 +14,8 @@
 
 <form method="POST">
     <div class="mb-3">
-        <label class="form-label">Order ID (OXXXXXXXXX)</label>
-        <input type="text" class="form-control" name="order_id" pattern="^O\d{9}$" required>
+        <label class="form-label">Order ID</label>
+        <input type="text" class="form-control" name="order_id">
     </div>
 
     <div class="mb-3">
@@ -58,5 +58,11 @@
 
     <button type="submit" class="btn btn-primary">Add Order</button>
 </form>
+
+{% if order %}
+<div class="alert alert-info mt-4">
+    <p>The Order ID is: {{ business_account }}</p>
+</div>
+{% endif %}
 
 {% endblock %}

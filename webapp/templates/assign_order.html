@@ -33,4 +33,10 @@
 
     <button type="submit" class="btn btn-primary">Assign Order</button>
 </form>
+
+{% if order %}
+<div class="alert alert-info mt-4">
+    <p>The order ID is: {{ order }}</p>
+</div>
+{% endif %}
 {% endblock %}
