@@ -289,17 +289,10 @@ BEGIN
     populateBusinessAccount(10000); -- 20000 are created in populateCustomer
     populateTeam(150); 
     populateEmployee(250);
-    --EXECUTE IMMEDIATE 'ALTER TRIGGER ComputePerformanceScore DISABLE';
     populateOrder(45100, 0.9);
     populateEmployeeInOrder(0.1);
     populateCompletionDateAndFeedbackInOrder(0.1);
-    --EXECUTE IMMEDIATE 'ALTER TRIGGER ComputePerformanceScore ENABLE';
     dbms_output.put_line('Population completed.');
-
-    -- trigger ComputePerformanceScore by updating feedback in the first order
-    --UPDATE OrderTB
-    --SET feedback = FeedbackTY(5, 'Great service!')
-    --WHERE ID = (SELECT ID FROM OrderTB o WHERE o.completionDate IS NOT NULL FETCH FIRST 1 ROW ONLY);
 END;
 /
 

@@ -83,7 +83,7 @@ def add_order():
             conn = database.get_connection()
             cursor = conn.cursor()
             
-            # Recupera i dati del form
+            # Form data
             order_id = request.form['order_id']
             placing_date = datetime.strptime(request.form['placing_date'], '%Y-%m-%d').date()
 

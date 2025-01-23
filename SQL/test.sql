@@ -18,7 +18,7 @@ INSERT INTO TeamTB VALUES (
     TeamTY('T000004', 'Team4', 0, 4.0, (SELECT REF(o) FROM OperationalCenterTB o WHERE o.name = 'Center1'))
 );
 
-SELECT ID, numOrder, performanceScore FROM TeamTB;
+SELECT ID, numOrder, performanceScore FROM TeamTB; WHERE ID IN ('T000001', 'T000002', 'T000003', 'T000004');
 
 INSERT INTO EmployeeTB VALUES (
     EmployeeTY('FC00000000000001', 'Mario', 'Rossi', TO_DATE('01/01/1990', 'DD/MM/YYYY'), '3331234567', 'e@e.com', (SELECT REF(t) FROM TeamTB t WHERE t.ID = 'T000001'))
@@ -73,7 +73,7 @@ INSERT INTO BusinessAccountTB VALUES (
 );
 /
 
-SELECT code FROM BusinessAccountTB;
+SELECT code FROM BusinessAccountTB WHERE code IN ('B000000002', 'B000000010');
 /
 
 -- ! Test trigger ComputePerformanceScore
@@ -85,7 +85,7 @@ INSERT INTO OrderTB VALUES (
 );
 /
 
-SELECT ID, numOrder, performanceScore FROM TeamTB;
+SELECT ID, numOrder, performanceScore FROM TeamTB WHERE ID = 'T000001';
 /
 
 -- ! Employee of a different team in the same order detected --> BRIGHTWAY_ADMIN.CHECKORDERINSERTORUPDATE
@@ -99,7 +99,7 @@ INSERT INTO OrderTB VALUES (
 );
 /
 
-SELECT ID, numOrder, performanceScore FROM TeamTB;
+SELECT ID, numOrder, performanceScore FROM TeamTB WHERE ID IN ('T000003', 'T000004');
 /
 
 INSERT INTO OrderTB VALUES (
@@ -162,9 +162,6 @@ WHERE ID IN ('T000001', 'T000002');
 INSERT INTO OrderTB VALUES (
     OrderTY('O000000003', TO_DATE('01/01/2011', 'DD/MM/YYYY'), 'online', 'regular', 10.0, (SELECT REF(b) FROM BusinessAccountTB b WHERE b.CODE = 'B000000002'), NULL, EmployeeVA((SELECT REF(e) FROM EmployeeTB e WHERE e.FC = 'FC00000000000002')), NULL, FeedbackTY(5, 'Good'))
 );
-/
-
-select * from TeamTB;
 /
 
 -- ! Cannot update employees of a completed order --> BRIGHTWAY_ADMIN.CHECKORDERINSERTORUPDATE
@@ -443,18 +440,18 @@ DELETE FROM OrderTB WHERE ID = 'O000000006';
 DELETE FROM OrderTB WHERE ID = 'O000000007';
 
 -- Test numOrder delete
-SELECT ID, numOrder, performanceScore from TeamTB;
-SELECT ID, deref(team) from OrderTB;
+SELECT ID, numOrder, performanceScore from TeamTB WHERE ID IN ('T000001', 'T000002');
+SELECT ID, deref(team) from OrderTB WHERE ID = 'O000000001';
 /
 
 DELETE BusinessAccountTB WHERE CODE = 'B000000002';
 /
 
 -- expected: 2 rows
-SELECT ID, deref(o.team) FROM OrderTB o;
+SELECT ID, deref(o.team) FROM OrderTB o WHERE ID = 'O000000001';
 /
 
-SELECT ID, numOrder, performanceScore from TeamTB;
+SELECT ID, numOrder, performanceScore from TeamTB WHERE ID IN ('T000001', 'T000002');
 /
 
 
@@ -502,8 +499,6 @@ WHERE ID = 'ORDERTEST1';
 SELECT ID, numOrder,performanceScore FROM TeamTB WHERE ID IN ('TEAMTEST1', 'TEAMTEST2');
 /
 
-SELECT * FROM BusinessAccountTB;
-/
 -- Test 5: Insert order without team
 INSERT INTO OrderTB VALUES (
     OrderTY('ORDERTEST2', SYSDATE, 'online', 'regular', 100.0,
@@ -522,7 +517,6 @@ SELECT ID, numOrder,performanceScore FROM TeamTB WHERE ID IN ('TEAMTEST1', 'TEAM
 /
 -- Test 7: Delete business account from order
 DELETE FROM BusinessAccountTB WHERE CODE = 'B000000002';
-SELECT * FROM ORDERTB;
 /
 -- Expected: TEAMTEST1: 0, TEAMTEST2: 0
 SELECT ID, numOrder,performanceScore FROM TeamTB WHERE ID IN ('TEAMTEST1', 'TEAMTEST2');
@@ -531,7 +525,5 @@ SELECT ID, numOrder,performanceScore FROM TeamTB WHERE ID IN ('TEAMTEST1', 'TEAM
 DELETE FROM TeamTB WHERE ID IN ('TEAMTEST1', 'TEAMTEST2');
 /
 
-SELECT * FROM TeamTB;
-/
 COMMIT;
 /
