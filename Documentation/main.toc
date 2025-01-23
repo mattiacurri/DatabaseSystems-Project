@@ -1,28 +1,9 @@
 \contentsline {chapter}{\numberline {1}Requirements}{5}{chapter.1}%
 \contentsline {chapter}{\numberline {2}Conceptual Design}{7}{chapter.2}%
-\contentsline {section}{\numberline {2.1}Requirements Analysis}{7}{section.2.1}%
-\contentsline {section}{\numberline {2.2}Reorganize sentences for specific concepts}{7}{section.2.2}%
-\contentsline {section}{\numberline {2.3}Level of abstraction}{8}{section.2.3}%
-\contentsline {section}{\numberline {2.4}Glossary of terms}{10}{section.2.4}%
-\contentsline {subsection}{\numberline {2.4.1}Skeleton ER Schema}{10}{subsection.2.4.1}%
-\contentsline {subsection}{\numberline {2.4.2}Final ER Schema}{10}{subsection.2.4.2}%
-\contentsline {section}{\numberline {2.5}Business Rules}{11}{section.2.5}%
 \contentsline {chapter}{\numberline {3}Logical Design}{13}{chapter.3}%
-\contentsline {section}{\numberline {3.1}Volumes Table}{13}{section.3.1}%
-\contentsline {section}{\numberline {3.2}Operations Analysis}{13}{section.3.2}%
-\contentsline {section}{\numberline {3.3}Redundancy Analyisis}{15}{section.3.3}%
-\contentsline {section}{\numberline {3.4}Partitioning and Merging}{15}{section.3.4}%
-\contentsline {subsection}{\numberline {3.4.1}Restructured Schema}{16}{subsection.3.4.1}%
-\contentsline {chapter}{\numberline {4}Implementation}{17}{chapter.4}%
-\contentsline {section}{\numberline {4.1}Types definition}{17}{section.4.1}%
-\contentsline {section}{\numberline {4.2}Table definition}{18}{section.4.2}%
-\contentsline {chapter}{\numberline {5}Trigger Implementation}{21}{chapter.5}%
-\contentsline {section}{\numberline {5.1}Triggers}{21}{section.5.1}%
-\contentsline {chapter}{\numberline {6}Functions Implementation}{25}{chapter.6}%
-\contentsline {section}{\numberline {6.1}Operations Implementation}{25}{section.6.1}%
-\contentsline {subsection}{\numberline {6.1.1}Operation 1: registerCustomer}{25}{subsection.6.1.1}%
-\contentsline {subsection}{\numberline {6.1.2}Operation 2: addOrder}{25}{subsection.6.1.2}%
-\contentsline {subsection}{\numberline {6.1.3}Operation 3: assignOrderToTeam}{26}{subsection.6.1.3}%
-\contentsline {subsection}{\numberline {6.1.4}Operation 4A: totalNumOrder}{26}{subsection.6.1.4}%
-\contentsline {subsection}{\numberline {6.1.5}Operation 4B: totalOrderCost}{26}{subsection.6.1.5}%
-\contentsline {subsection}{\numberline {6.1.6}Operation 5: printTeamsByPerformanceScore}{26}{subsection.6.1.6}%
+\contentsline {chapter}{\numberline {4}Implementation}{19}{chapter.4}%
+\contentsline {chapter}{\numberline {5}Trigger Implementation}{23}{chapter.5}%
+\contentsline {chapter}{\numberline {6}Database Population}{33}{chapter.6}%
+\contentsline {chapter}{\numberline {7}Procedures and Functions}{41}{chapter.7}%
+\contentsline {chapter}{\numberline {8}Physical Design}{45}{chapter.8}%
+\contentsline {chapter}{\numberline {9}Web Application}{49}{chapter.9}%

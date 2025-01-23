@@ -1,10 +1,8 @@
 \chapter{Conceptual Design}
 
-\section{Requirements Analysis}
+\section*{Requirements Analysis}
 
-
-
-\section{Reorganize sentences for specific concepts}
+\section*{Reorganize sentences for specific concepts}
 
 
 \begin{tcolorbox}[title=General Phrases]
@@ -55,7 +53,7 @@ Customers can be classified as individual or business, each identified by a uniq
 Teams consist of employees, and the number of employees may vary depending on the required workload.
 \end{tcolorbox}
 
-\section{Level of abstraction}
+\section*{Level of abstraction}
 For \textbf{customer information}, we consider \textit{name}, \textit{surname}, and \textit{date of birth} for individual customers, and \textit{company name} and \textit{address} for business customers, where the address consists of \textit{street}, \textit{civic number}, \textit{city}, \textit{province}, \textit{region}, and \textit{state}.  
 
 For \textbf{contact details}, we consider \textit{phone number} and \textit{email}.  
@@ -66,8 +64,8 @@ For \textbf{contact details}, we consider \textit{phone number} and \textit{emai
 
 \textbf{Number of operations} is replaced by \textit{number of orders}.
 
-\section{Glossary of terms}
-\begin{table}[h!]
+\section*{Glossary of terms}
+\begin{table}[H]
     \resizebox{\textwidth}{!}{
     \begin{tabular}{|c|p{5cm}|p{3cm}|p{3cm}|}
     \hline
@@ -87,40 +85,40 @@ For \textbf{contact details}, we consider \textit{phone number} and \textit{emai
     \hline
     \end{tabular}
     }
+    \caption{Glossary of terms}
     \end{table}
 
-\subsection{Skeleton ER Schema}
+\subsection*{Skeleton ER Schema}
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{img/skeleton.png}
 \end{figure}
 
-\subsection{Final ER Schema}
+\subsection*{Final ER Schema}
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{img/ER.jpg}
 \end{figure}
 
 \begin{itemize}[label=-]
-    \item There are three redundancies: \texttt{NoOrders} and \texttt{PerformanceScore} in \texttt{Team} and \texttt{NoEmployee} in \texttt{Operational Center}, that will be evaluated later.
-    \item There are two generalizations for \texttt{Order} and \texttt{Customer}, that will be evaluated later.
+    \item There are three redundancies: \texttt{NoOrders} and \texttt{PerformanceScore} in \texttt{Team} \\ and \texttt{NoEmployee} in \texttt{Operational Center}.
+    \item There are two generalizations (both total and exclusive) for \texttt{Order} and \texttt{Customer}.
 \end{itemize}
 
-\section{Business Rules}
+\section*{Business Rules}
 \begin{itemize}
     \item Employees linked to an order must be in the same team that handle the order.
     \item Number of employees is the sum of all employees in a team.
     \item Number of orders is the sum of all orders handled by a team.
     \item Completion date cannot be before placing date.
+    \item Feedback of CompletedOrder must be between 1 and 5.
     \item PerformanceScore is computed as the mean of all feedbacks.
     \item A team has a maximum of 8 members.
     \item OrderType must be of three types: regular, urgent, or bulk.
     \item OrderMode must be of three types: phone, email, or online.
-    \item Feedback of CompletedOrder must be between 1 and 5.
     \item A feedback cannot be given before the order is completed.
     \item A team must be assigned before an order is completed.
     \item A team cannot be changed after an order is completed.
     \item Employees of a completed order cannot be changed.
-    \item An order can be deleted only if there are not information for the business account or for the feedback computation.
 \end{itemize}
 

@@ -1,7 +1,7 @@
 \chapter{Implementation}
 
-\section{Types definition}
-\begin{lstlisting}[language=SQL]
+\subsection*{Types definition}
+\begin{lstlisting}
 CREATE OR REPLACE TYPE AddressTY AS OBJECT (
     street VARCHAR2(50),
     civicNum NUMBER,
@@ -12,16 +12,16 @@ CREATE OR REPLACE TYPE AddressTY AS OBJECT (
 );
 \end{lstlisting}
 
-\begin{lstlisting}[language=SQL]
+\begin{lstlisting}
 CREATE OR REPLACE TYPE OperationalCenterTY AS OBJECT (
     name VARCHAR2(50),
     address AddressTY
 );
 \end{lstlisting}
 
-\begin{lstlisting}[language=SQL]
+\begin{lstlisting}
 CREATE OR REPLACE TYPE TeamTY AS OBJECT (
-    ID VARCHAR2(50), -- Format: TXXXXXX
+    ID VARCHAR2(32),
     name VARCHAR2(20),
     numOrder NUMBER,
     performanceScore NUMBER(4, 2),
@@ -29,7 +29,7 @@ CREATE OR REPLACE TYPE TeamTY AS OBJECT (
 );
 \end{lstlisting}
 
-\begin{lstlisting}[language=SQL]
+\begin{lstlisting}
 CREATE OR REPLACE TYPE EmployeeTY AS OBJECT (
     FC VARCHAR2(16),
     name VARCHAR2(20),
@@ -41,19 +41,19 @@ CREATE OR REPLACE TYPE EmployeeTY AS OBJECT (
 );
 \end{lstlisting}
 
-\begin{lstlisting}[language=SQL]    
+\begin{lstlisting}    
 CREATE OR REPLACE TYPE FeedbackTY AS OBJECT (
-    score NUMBER(1), -- check (score between 1 and 5),
+    score NUMBER(1),
     commentF VARCHAR2(1000)
 );
 \end{lstlisting}
 
-\begin{lstlisting}[language=SQL]    
+\begin{lstlisting}    
 CREATE OR REPLACE TYPE CustomerTY AS OBJECT (
     VAT VARCHAR2(11),
     phone VARCHAR2(14),
     email VARCHAR2(50),
-    type VARCHAR2(10), -- CHECK (type IN ('individual', 'business')
+    type VARCHAR2(10),
     name VARCHAR2(20),
     surname VARCHAR2(20),
     dob DATE,
@@ -62,41 +62,42 @@ CREATE OR REPLACE TYPE CustomerTY AS OBJECT (
 ) NOT FINAL;
 \end{lstlisting}
 
-\begin{lstlisting}[language=SQL]    
+\begin{lstlisting}    
 CREATE OR REPLACE TYPE BusinessAccountTY AS OBJECT (
-    CODE VARCHAR2(10), -- Format: BXXXXXXXXX
+    CODE VARCHAR2(32),
     creationDate DATE,
     customer ref CustomerTY
 );
 \end{lstlisting}
 
-\begin{lstlisting}[language=SQL]
+\begin{lstlisting}
 CREATE OR REPLACE TYPE EmployeeVA AS VARRAY(8) OF REF EmployeeTY;
 \end{lstlisting}
 
-\begin{lstlisting}[language=SQL]    
+\begin{lstlisting}    
 CREATE OR REPLACE TYPE OrderTY AS OBJECT (
-    ID VARCHAR2(10), -- Format: OXXXXXXXXX
+    ID VARCHAR2(32),
     placingDate DATE,
-    orderMode VARCHAR2(6), -- CHECK (orderMode IN ('online', 'phone', 'email')),
-    orderType VARCHAR2(7), -- CHECK (orderType IN ('regular', 'urgent', 'bulk')),
+    orderMode VARCHAR2(6),
+    orderType VARCHAR2(7),
     cost NUMBER(10, 2),
     businessAccount ref BusinessAccountTY,
     team ref TeamTY,
     employees EmployeeVA,
     completionDate DATE,
     feedback FeedbackTY
+);
 \end{lstlisting}
 
-\section{Table definition}
-\begin{lstlisting}[language=SQL]
+\subsection*{Table definition}
+\begin{lstlisting}
 CREATE TABLE OperationalCenterTB OF OperationalCenterTY (
     name PRIMARY KEY,
     address NOT NULL
 ); 
 \end{lstlisting}
 
-\begin{lstlisting}[language=SQL]
+\begin{lstlisting}
 CREATE TABLE TeamTB OF TeamTY (
     ID PRIMARY KEY,
     name NOT NULL,
@@ -106,7 +107,7 @@ CREATE TABLE TeamTB OF TeamTY (
 );
 \end{lstlisting}
 
-\begin{lstlisting}[language=SQL]
+\begin{lstlisting}
 CREATE TABLE EmployeeTB OF EmployeeTY (
     FC PRIMARY KEY CHECK (LENGTH(FC) = 16),
     name NOT NULL,
@@ -117,7 +118,7 @@ CREATE TABLE EmployeeTB OF EmployeeTY (
 );
 \end{lstlisting}
 
-\begin{lstlisting}[language=SQL]
+\begin{lstlisting}
 CREATE TABLE CustomerTB OF CustomerTY (
     VAT PRIMARY KEY CHECK (LENGTH(VAT) = 11),
     phone NOT NULL,
@@ -126,17 +127,17 @@ CREATE TABLE CustomerTB OF CustomerTY (
 );
 \end{lstlisting}
 
-\begin{lstlisting}[language=SQL]
+\begin{lstlisting}
 CREATE TABLE BusinessAccountTB OF BusinessAccountTY (
-    CODE PRIMARY KEY,
+    CODE DEFAULT RAWTOHEX(SYS_GUID()) PRIMARY KEY,
     creationDate NOT NULL,
     customer NOT NULL
 );
 \end{lstlisting}
 
-\begin{lstlisting}[language=SQL]
+\begin{lstlisting}
 CREATE TABLE OrderTB OF OrderTY (
-    ID PRIMARY KEY,
+    ID DEFAULT RAWTOHEX(SYS_GUID()) PRIMARY KEY,
     placingDate NOT NULL,
     orderMode NOT NULL CHECK (orderMode IN ('online', 'phone', 'email')),
     orderType NOT NULL CHECK (orderType IN ('regular', 'urgent', 'bulk')),

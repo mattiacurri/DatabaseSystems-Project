@@ -1,0 +1,122 @@
+\chapter{Procedures and Functions}
+
+\subsection*{Operation 1: registerCustomer}
+Registers a new customer with optional business or individual data.
+\begin{lstlisting}
+CREATE OR REPLACE PROCEDURE registerCustomer(
+    VAT IN VARCHAR2,
+    phone IN VARCHAR2,
+    email IN VARCHAR2,
+    type IN VARCHAR2,
+    name IN VARCHAR2,
+    surname IN VARCHAR2,
+    dob IN DATE,
+    companyName IN VARCHAR2,
+    address IN AddressTY
+) AS
+    customer CustomerTY;
+BEGIN
+    IF type = 'individual' THEN
+        IF VAT IS NULL THEN
+            customer := CustomerTY(SYS_GUID(), phone, email, type, name, surname, dob, NULL, NULL);
+        ELSE
+            customer := CustomerTY(VAT, phone, email, type, name, surname, dob, NULL, NULL);
+        END IF;
+    ELSIF type = 'business' THEN
+        IF VAT IS NULL THEN
+            customer := CustomerTY(SYS_GUID(), phone, email, type, NULL, NULL, NULL, companyName, address);
+        ELSE
+            customer := CustomerTY(VAT, phone, email, type, NULL, NULL, NULL, companyName, address);
+        END IF;
+    ELSE
+        RAISE_APPLICATION_ERROR(-20000, 'Invalid customer type; must be either individual or business');
+    END IF;
+    INSERT INTO CustomerTB VALUES customer;
+    COMMIT;
+END;
+\end{lstlisting}
+
+\subsection*{Operation 2: addOrder}
+Adds a new order by referencing a business account and optional employees.
+\begin{lstlisting}
+CREATE OR REPLACE PROCEDURE addOrder(
+    ID IN VARCHAR2,
+    placingDate IN DATE,
+    orderMode IN VARCHAR2,
+    orderType IN VARCHAR2,
+    cost IN NUMBER,
+    businessAccountName IN VARCHAR2,
+    employees IN EmployeeVA DEFAULT NULL
+) AS 
+    baRef REF BusinessAccountTY;
+BEGIN
+    SELECT REF(b)
+    INTO baRef
+    FROM BusinessAccountTB b
+    WHERE b.CODE = businessAccountName;
+    IF ID IS NULL THEN
+        INSERT INTO OrderTB (ID, placingDate, orderMode, orderType, cost, businessAccount, employees) VALUES (sys_GUID(), placingDate, orderMode, orderType, cost, baRef, employees);
+    ELSE
+        INSERT INTO OrderTB (ID, placingDate, orderMode, orderType, cost, businessAccount, employees) VALUES (ID, placingDate, orderMode, orderType, cost, baRef, employees);
+    END IF;
+    COMMIT;
+END;
+\end{lstlisting}
+
+\subsection*{Operation 3: assignOrderToTeam}
+Assigns an order to a specific team.
+\begin{lstlisting}
+CREATE OR REPLACE PROCEDURE assignOrderToTeam(
+    orderID IN VARCHAR2,
+    teamID IN VARCHAR2
+) AS
+BEGIN
+    -- Update the order with the team reference
+    UPDATE OrderTB
+    SET team = (SELECT REF(t) FROM TeamTB t WHERE t.ID = teamID)
+    WHERE ID = orderID;
+    COMMIT;
+END;
+\end{lstlisting}
+
+\subsection*{Operation 4A: totalNumOrder}
+Returns the total number of orders handled by a given team.
+\begin{lstlisting}
+CREATE OR REPLACE FUNCTION totalNumOrder(
+    teamID IN VARCHAR2
+) RETURN NUMBER AS
+    v_count NUMBER;
+BEGIN
+    SELECT numOrder INTO v_count
+    FROM TeamTB
+    WHERE ID = teamID;
+    RETURN NVL(v_count, 0);
+END;
+\end{lstlisting}
+
+\subsection*{Operation 4B: totalOrderCost}
+Calculates the total cost of all orders for a team.
+\begin{lstlisting}
+CREATE OR REPLACE FUNCTION totalOrderCost(
+    teamID IN VARCHAR2
+) RETURN NUMBER AS
+    totalCost NUMBER;
+BEGIN
+    SELECT SUM(cost) INTO totalCost
+    FROM OrderTB o
+    WHERE o.team.ID = teamID;
+    RETURN NVL(totalCost, 0);
+END;
+\end{lstlisting}
+
+\subsection*{Operation 5: printTeamsByPerformanceScore}
+Prints teams sorted by performance score in descending order.
+\begin{lstlisting}
+CREATE OR REPLACE PROCEDURE printTeamsByPerformanceScore AS
+BEGIN
+    FOR team IN (SELECT * FROM TeamTB ORDER BY performanceScore DESC) LOOP
+        DBMS_OUTPUT.PUT_LINE('Team ID: ' || team.ID || ', Performance Score: ' || team.performanceScore);
+    END LOOP;
+    COMMIT;
+END;
+\end{lstlisting}

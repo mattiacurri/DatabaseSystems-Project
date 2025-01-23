@@ -1,129 +1,372 @@
 \chapter{Trigger Implementation}
 
-\section{Triggers}
-
 \subsection*{CheckOrderInsertOrUpdate}
-This trigger enforces logical constraints on orders:
-\begin{lstlisting}[language=SQL]
+This trigger enforces the following logical constraints on orders:
+\begin{itemize}[label=-]
+    \item Feedback cannot be provided without a completion date.
+    \item A team must be assigned before the completion date.
+    \item The team cannot be changed after the order is completed.
+    \item All employees in the same order must belong to the same team.
+    \item Employees associated with a completed order cannot be updated.
+    \item If an order has employees but no team, assign the team based on the employees' team.
+    \item Ensures that feedback score, if feedback is provided, is not null.
+\end{itemize}
+\begin{lstlisting}
 CREATE OR REPLACE TRIGGER CheckOrderInsertOrUpdate
-    % ...existing code...
+BEFORE INSERT OR UPDATE ON OrderTB
+FOR EACH ROW
+DECLARE
+    cnt NUMBER;
+BEGIN
+    -- * FUNZIONA 
+    IF :NEW.completionDate IS NULL THEN
+        IF :NEW.feedback IS NOT NULL THEN
+            RAISE_APPLICATION_ERROR(-20001, 'Feedback cannot be given without completion date');
+        END IF;
+    END IF;
+
+    -- * FUNZIONA
+    IF INSERTING THEN
+        IF :NEW.team IS NULL AND :NEW.completionDate IS NOT NULL THEN
+            RAISE_APPLICATION_ERROR(-20010, 'Team must be assigned before completion date');
+        END IF;
+    END IF;
+
+    -- * FUNZIONA
+    IF UPDATING THEN
+        IF :OLD.completionDate IS NOT NULL AND 
+            ((:OLD.team IS NULL AND :NEW.team IS NOT NULL) OR
+            (:OLD.team IS NOT NULL AND :NEW.team IS NULL) OR
+            (:OLD.team IS NOT NULL AND :NEW.team IS NOT NULL AND :NEW.team <> :OLD.team)) THEN
+            RAISE_APPLICATION_ERROR(-20011, 'Team cannot be changed after order completion');
+        END IF;
+    END IF;
+
+    -- * FUNZIONA
+    IF :NEW.employees IS NOT NULL AND :NEW.employees.COUNT > 0 AND :NEW.team IS NOT NULL THEN
+        SELECT COUNT(*) INTO cnt FROM TABLE(:NEW.employees) emp_ref
+        JOIN EmployeeTB e ON (emp_ref.column_value = REF(e))
+        WHERE e.team <> :NEW.team;
+
+        IF cnt > 0 THEN
+            RAISE_APPLICATION_ERROR(-20007, 'Employee of a different team in the same order detected');
+        END IF;
+    END IF;
+
+    -- * FUNZIONA
+    IF UPDATING THEN
+        IF :OLD.completionDATE IS NOT NULL THEN
+            IF :NEW.employees IS NOT NULL OR (:OLD.employees IS NOT NULL AND :NEW.employees IS NULL) THEN
+                RAISE_APPLICATION_ERROR(-20008, 'Cannot update employees of a completed order');
+            END IF;
+        END IF;
+    END IF;
+
+    -- * FUNZIONA
+    IF :NEW.team IS NULL AND :NEW.employees IS NOT NULL AND :NEW.employees.COUNT > 0 THEN
+        SELECT e.team INTO :NEW.team
+        FROM TABLE(:NEW.employees) emp_ref
+        JOIN EmployeeTB e ON (emp_ref.column_value = REF(e))
+        FETCH FIRST 1 ROW ONLY;
+    END IF;
+
+    -- * FUNZIONA
+    IF :NEW.feedback IS NOT NULL AND :NEW.feedback.score IS NULL THEN
+        RAISE_APPLICATION_ERROR(-20020, 'Feedback score cannot be null');
+    END IF;
 END;
-/
 \end{lstlisting}
 
 \subsection*{CheckCustomerType}
 Enforces that "individual" customers cannot have business data and vice versa:
-\begin{lstlisting}[language=SQL]
+\begin{lstlisting}
 CREATE OR REPLACE TRIGGER CheckCustomerType
-    % ...existing code...
+BEFORE INSERT OR UPDATE ON CustomerTB
+FOR EACH ROW
+BEGIN
+    IF :NEW.type = 'individual' THEN
+        IF :NEW.companyName IS NOT NULL THEN
+            RAISE_APPLICATION_ERROR(-20002, 'Individual customers cannot have a company name');
+        END IF;
+        IF :NEW.address IS NOT NULL THEN
+            RAISE_APPLICATION_ERROR(-20003, 'Individual customers cannot have an address');
+        END IF;
+    ELSIF :NEW.type = 'business' THEN
+        IF :NEW.name IS NOT NULL THEN
+            RAISE_APPLICATION_ERROR(-20004, 'Business customers cannot have a name');
+        END IF;
+        IF :NEW.surname IS NOT NULL THEN
+            RAISE_APPLICATION_ERROR(-20005, 'Business customers cannot have a surname');
+        END IF;
+        IF :NEW.dob IS NOT NULL THEN
+            RAISE_APPLICATION_ERROR(-20006, 'Business customers cannot have a date of birth');
+        END IF;
+    END IF;
 END;
-/
 \end{lstlisting}
 
-\subsection*{UpdateNumOrders}
-Keeps each team's numOrder up-to-date when orders are inserted, updated, or deleted:
-\begin{lstlisting}[language=SQL]
-CREATE OR REPLACE TRIGGER UpdateNumOrders
-    % ...existing code...
+\subsection*{UpdateNumOrdersBeforeInsert}
+Increments the numOrder attribute of a team before inserting a new order:
+\begin{lstlisting}
+CREATE OR REPLACE TRIGGER UpdateNumOrdersBeforeInsert
+BEFORE INSERT ON OrderTB
+FOR EACH ROW
+BEGIN
+    IF :NEW.team IS NOT NULL THEN
+        UPDATE TeamTB t
+            SET t.numOrder = t.numOrder + 1
+            WHERE REF(t) = :NEW.team;
+    END IF;
 END;
-/
+\end{lstlisting} 
+
+\subsection*{UpdateNumOrdersBeforeDelete}
+Decrements the numOrder attribute of a team before deleting an order:
+\begin{lstlisting}
+CREATE OR REPLACE TRIGGER UpdateNumOrdersBeforeDelete
+BEFORE DELETE ON OrderTB
+FOR EACH ROW
+BEGIN
+    IF :OLD.team IS NOT NULL THEN
+        UPDATE TeamTB t
+            SET t.numOrder = t.numOrder - 1
+            WHERE REF(t) = :OLD.team;
+    END IF;
+END; 
+\end{lstlisting}
+
+\subsection*{UpdateNumOrdersBeforeUpdate}
+Updates the numOrder attribute of a team before updating an order:
+\begin{lstlisting}
+CREATE OR REPLACE TRIGGER UpdateNumOrdersBeforeUpdate
+BEFORE UPDATE OF team ON OrderTB
+FOR EACH ROW
+BEGIN
+    IF :OLD.team IS NOT NULL THEN
+        UPDATE TeamTB t
+            SET t.numOrder = t.numOrder - 1
+            WHERE REF(t) = :OLD.team;
+    END IF;
+
+    IF :NEW.team IS NOT NULL THEN
+        UPDATE TeamTB t
+            SET t.numOrder = t.numOrder + 1
+            WHERE REF(t) = :NEW.team;
+    END IF;
+END;
 \end{lstlisting}
 
 \subsection*{CheckTeamInsertInitialization}
-Initializes numOrder and performanceScore when inserting a new team:
-\begin{lstlisting}[language=SQL]
+Initializes numOrder and performanceScore in a correct way when inserting a new team (numOrder = 0, performanceScore = 1):
+\begin{lstlisting}
 CREATE OR REPLACE TRIGGER CheckTeamInsertInitialization
-    % ...existing code...
+BEFORE INSERT ON TeamTB
+FOR EACH ROW
+BEGIN
+    :NEW.numOrder := 0;
+    :NEW.performanceScore := 1;
 END;
-/
 \end{lstlisting}
 
 \subsection*{CheckNumEmployeeInTeam}
-Ensures a team cannot exceed 8 employees:
-\begin{lstlisting}[language=SQL]
+Ensures a team cannot exceed 8 employees. This trigger makes use of a compound trigger to store the team reference and toavoid the mutating table problem:
+\begin{lstlisting}
 CREATE OR REPLACE TRIGGER CheckNumEmployeeInTeam
-    % ...existing code...
+FOR INSERT OR UPDATE OF team ON EmployeeTB
+COMPOUND TRIGGER
+    cnt number;
+    teamRef REF TeamTY;
+BEFORE EACH ROW IS
+BEGIN
+    teamRef := :New.team;
+END BEFORE EACH ROW;
+
+AFTER STATEMENT IS
+BEGIN
+    SELECT COUNT(*) INTO cnt FROM EmployeeTB e WHERE e.team = teamRef;
+    IF cnt > 8 THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Max number of employee reached');
+    END IF;
+    END AFTER STATEMENT;
 END;
-/
 \end{lstlisting}
 
 \subsection*{ComputePerformanceScore}
-Recalculates a team's average feedback score whenever a new order or feedback is added or updated:
-\begin{lstlisting}[language=SQL]
+Recalculates a team's average feedback score whenever a new order is added, updated or inserted. It stores the team affected by the operation, and compute the new score of them:
+\begin{lstlisting}
+CREATE OR REPLACE TYPE TeamRefList AS TABLE OF REF TeamTY;
+
 CREATE OR REPLACE TRIGGER ComputePerformanceScore
-    % ...existing code...
+FOR INSERT OR UPDATE OR DELETE OF feedback ON OrderTB
+COMPOUND TRIGGER
+    changedTeams TeamRefList := TeamRefList();
+
+BEFORE EACH ROW IS
+BEGIN
+    IF DELETING OR UPDATING THEN
+        IF :OLD.feedback IS NOT NULL AND :OLD.team IS NOT NULL THEN
+            changedTeams.EXTEND;
+            changedTeams(changedTeams.LAST) := :OLD.team;
+        END IF;
+    END IF;
+
+    IF INSERTING OR UPDATING THEN
+        IF :NEW.feedback IS NOT NULL AND :NEW.team IS NOT NULL THEN
+            changedTeams.EXTEND;
+            changedTeams(changedTeams.LAST) := :NEW.team;
+        END IF;
+    END IF;
+END BEFORE EACH ROW;
+
+AFTER STATEMENT IS
+BEGIN
+    UPDATE TeamTB t
+        SET t.performanceScore = (
+                SELECT ROUND(AVG(o.feedback.score), 2)
+                    FROM OrderTB o
+                WHERE o.team = REF(t)
+                    AND o.feedback IS NOT NULL
+            )
+        WHERE REF(t) IN (
+                SELECT COLUMN_VALUE
+                    FROM TABLE(changedTeams)
+            );
+END AFTER STATEMENT;
+
 END;
-/
 \end{lstlisting}
 
 \subsection*{AddAccount}
 Automatically creates a business account for every new customer:
-\begin{lstlisting}[language=SQL]
+\begin{lstlisting}
 CREATE OR REPLACE TRIGGER AddAccount
-    % ...existing code...
+FOR INSERT ON CustomerTB
+COMPOUND TRIGGER
+    customer VARCHAR2(11);
+BEFORE EACH ROW IS
+BEGIN
+    customer := :NEW.VAT;
+END BEFORE EACH ROW;
+
+AFTER STATEMENT IS
+    v_code VARCHAR2(10);
+    v_exists NUMBER;
+BEGIN
+    insert into BusinessAccountTB values (
+        sys_guid(),
+        sysdate, 
+        (SELECT REF(c) FROM CustomerTB c WHERE c.VAT = customer)
+    );
+END AFTER STATEMENT;
 END;
-/
 \end{lstlisting}
 
 \subsection*{DeleteTeamAfterOperationalCenter}
 Deletes teams that lose their operational center reference upon an operational center's deletion:
-\begin{lstlisting}[language=SQL]
+\begin{lstlisting}
 CREATE OR REPLACE TRIGGER DeleteTeamAfterOperationalCenter
-    % ...existing code...
+AFTER DELETE ON OperationalCenterTB
+BEGIN
+    DELETE FROM TeamTB t
+    WHERE DEREF(t.operationalCenter) IS NULL AND t.operationalCenter IS NOT NULL;
 END;
-/
 \end{lstlisting}
 
 \subsection*{UpdateEmployeeAfterTeam}
 Sets an employee's team reference to NULL if the team is deleted, and unassigned orders if they're not completed:
-\begin{lstlisting}[language=SQL]
+\begin{lstlisting}
 CREATE OR REPLACE TRIGGER UpdateEmployeeAfterTeam
-    % ...existing code...
+AFTER DELETE ON TeamTB
+BEGIN
+    UPDATE EmployeeTB e
+    SET e.team = NULL
+    WHERE DEREF(e.team) IS NULL AND e.team IS NOT NULL;
+
+    UPDATE OrderTB o
+    SET o.team = NULL
+    WHERE DEREF(o.team) IS NULL AND o.team IS NOT NULL AND o.completionDate IS NULL;
 END;
-/
 \end{lstlisting}
 
 \subsection*{DeleteAccountAfterCustomer}
 Deletes business accounts that become orphaned when their customer is removed:
-\begin{lstlisting}[language=SQL]
+\begin{lstlisting}
 CREATE OR REPLACE TRIGGER DeleteAccountAfterCustomer
-    % ...existing code...
+AFTER DELETE ON CustomerTB
+BEGIN
+    DELETE FROM BusinessAccountTB ba
+    WHERE DEREF(ba.customer) IS NULL AND ba.customer IS NOT NULL;
 END;
-/
 \end{lstlisting}
 
 \subsection*{DeleteOrdersAfterTeam}
 Removes orders that have lost their team and business account references:
-\begin{lstlisting}[language=SQL]
+\begin{lstlisting}
 CREATE OR REPLACE TRIGGER DeleteOrdersAfterTeam
-    % ...existing code...
+AFTER DELETE ON TeamTB
+BEGIN
+    DELETE FROM OrderTB o
+    WHERE DEREF(o.team) IS NULL AND o.team IS NOT NULL AND DEREF(o.businessAccount) IS NULL AND o.businessAccount IS NOT NULL;
 END;
-/
 \end{lstlisting}
 
 \subsection*{DeleteOrdersAfterAccount}
 Deletes orders that have lost their related business account, under certain conditions:
-\begin{lstlisting}[language=SQL]
+\begin{itemize}[label=-]
+    \item The business account reference is null and the feedback score is null.
+    \item The business account reference is null and the team reference is null.
+\end{itemize}
+In either case, there is no possibility of having useful information to compute the performance score, and there is no need to retain the order history because the order is not associated with any customer.
+\begin{lstlisting}
 CREATE OR REPLACE TRIGGER DeleteOrdersAfterAccount
-    % ...existing code...
+AFTER DELETE ON BusinessAccountTB
+BEGIN
+    DELETE FROM OrderTB o
+    WHERE DEREF(o.businessAccount) IS NULL AND o.businessAccount IS NOT NULL AND o.completionDate IS NULL;
+
+    DELETE FROM OrderTB o
+    WHERE DEREF(o.businessAccount) IS NULL AND o.businessAccount IS NOT NULL AND (o.team IS NOT NULL AND DEREF(o.team) IS NULL);
 END;
-/
 \end{lstlisting}
 
 \subsection*{PreventOrderDeletion}
 Prevents order deletion unless it has lost all references or is uncompleted with no account:
-\begin{lstlisting}[language=SQL]
+\begin{lstlisting}
 CREATE OR REPLACE TRIGGER PreventOrderDeletion
-    % ...existing code...
+BEFORE DELETE ON OrderTB
+FOR EACH ROW
+DECLARE
+    v_team TeamTY;
+    v_account BusinessAccountTY;
+BEGIN
+    IF :OLD.team IS NOT NULL THEN
+        SELECT DEREF(:OLD.team) INTO v_team FROM DUAL;
+    END IF;
+    IF :OLD.businessAccount IS NOT NULL THEN
+        SELECT DEREF(:OLD.businessAccount) INTO v_account FROM DUAL;
+    END IF;
+
+    IF NOT (
+        (:OLD.team IS NOT NULL AND v_team IS NULL AND 
+            :OLD.businessAccount IS NOT NULL AND v_account IS NULL)
+        OR
+        (:OLD.businessAccount IS NOT NULL AND v_account IS NULL AND 
+            :OLD.completionDate IS NULL)
+    ) THEN
+        RAISE_APPLICATION_ERROR(-20019, 'Order deletion not allowed in this case');
+    END IF;
 END;
-/
 \end{lstlisting}
 
 \subsection*{EmptyEmployeeListAfterTeamUpdate}
 Clears the employee list if a team reference changes:
-\begin{lstlisting}[language=SQL]
+\begin{lstlisting}
 CREATE OR REPLACE TRIGGER EmptyEmployeeListAfterTeamUpdate
-    % ...existing code...
+BEFORE UPDATE OF team ON OrderTB
+FOR EACH ROW
+BEGIN
+    IF :OLD.team IS NOT NULL AND :NEW.team IS NOT NULL AND :OLD.team != :NEW.team THEN
+        :NEW.employees := NULL;
+    END IF;
 END;
-/
 \end{lstlisting}

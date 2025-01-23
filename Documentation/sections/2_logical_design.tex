@@ -1,5 +1,5 @@
 \chapter{Logical Design}
-\section{Volumes Table}
+\section*{Volumes Table}
 We will consider a span of a month to evaluate the volumes of the entities.
 
 \begin{table}[h!]
@@ -16,7 +16,7 @@ We will consider a span of a month to evaluate the volumes of the entities.
     \hline
     Handled By & R & 45000 (same as (assigned) \texttt{Order}) & 45000 \\
     \hline
-    Order & E & $300 \; \text{op/m} \cdot 150 \cdot 12 + 100 \; \text{not assigned}$ & 45100 \\
+    Order & E & $300 \; \text{op/m} \cdot 150 + 100 \; \text{not assigned}$ & 45100 \\
     \hline
     Belongs To & R & $150 \; \texttt{Team} \cdot 6.4 \; \text{current \texttt{Employee}}$ & 960 \\
     \hline
@@ -45,34 +45,33 @@ We will consider a span of a month to evaluate the volumes of the entities.
 \end{table}
     
 
-\section{Operations Analysis}
-\begin{table}[h!]
+\section*{Operations Analysis}
+\begin{table}[H]
     \centering
-    \caption{Operations frequency analysis}
     \begin{tabular}{|l|c|c|}
-    \hline
-    \textbf{Operation} & \textbf{Type} & \textbf{Frequency} \\
-    \hline
-    Operation 1 & I & 10/day \\
-    \hline
-    Operation 2 & I & 1000/day \\
-    \hline
-    Operation 3 & I & 500/day \\
-    \hline
-    Operation 4 & I & 200/day \\
-    \hline
-    Operation 5 & I & 20/day \\
-    \hline
+        \hline
+        \textbf{Operation} & \textbf{Type} & \textbf{Frequency} \\
+        \hline
+        Operation 1 & I & 10/day \\
+        \hline
+        Operation 2 & I & 1000/day \\
+        \hline
+        Operation 3 & I & 500/day \\
+        \hline
+        Operation 4 & I & 200/day \\
+        \hline
+        Operation 5 & I & 20/day \\
+        \hline
     \end{tabular}
+    \caption{Operations frequency}
     \end{table}
     
-    In the next section, we will double count the cost of writing operations.
+    \textbf{Note}: we will double count the cost of writing operations.
     
     \subsection*{Operation 1: Register a new customer}
     
-    \begin{table}[h!]
+    \begin{table}[H]
     \centering
-    \caption{Access analysis for registering a new customer}
     \begin{tabular}{|l|c|c|c|}
     \hline
     \textbf{Concept} & \textbf{Type} & \textbf{No. Access} & \textbf{Access Type} \\
@@ -86,33 +85,30 @@ We will consider a span of a month to evaluate the volumes of the entities.
     \end{tabular}
     \end{table}
     
-    \textbf{Operation cost}: $6 \; \text{accesses} \cdot 10 \; \text{days} = 60 \; \text{accesses/day}$
+    \textbf{Operation cost}: $6 \; \text{accesses} \cdot 10 = 60 \; \text{accesses/day}$
     
     \subsection*{Operation 2: Add a new order}
-    
+        
     \begin{table}[h!]
-    \centering
-    \caption{Access analysis for adding a new order}
-    \begin{tabular}{|l|c|c|c|}
-    \hline
-    \textbf{Concept} & \textbf{Type} & \textbf{No. Access} & \textbf{Access Type} \\
-    \hline
-    Order   & E & 1 & W \\
-    \hline
-    Places  & R & 1 & W \\
-    \hline
-    \end{tabular}
+        \centering
+        \begin{tabular}{|l|c|c|c|}
+        \hline
+        \textbf{Concept} & \textbf{Type} & \textbf{No. Access} & \textbf{Access Type} \\
+        \hline
+        Order   & E & 1 & W \\
+        \hline
+        Places  & R & 1 & W \\
+        \hline
+        \end{tabular}
     \end{table}
-    
-    \textbf{Operation cost}: $4 \; \text{accesses} \cdot 1000 \; \text{days} = 4000 \; \text{accesses/day}$
-    
+        
+    \textbf{Operation cost}: $4 \; \text{accesses} \cdot 1000 = 4000 \; \text{accesses/day}$
     \subsection*{Operation 3: Assign an order to a management team}
     
-    Access \textit{without} redundancy \texttt{Team.NoOperations}:
+    Access \textit{without} redundancy \texttt{Team.NoOrders}:
     
     \begin{table}[h!]
     \centering
-    \caption{Access analysis for assigning order to team (without redundancy)}
     \begin{tabular}{|l|c|c|c|}
     \hline
     \textbf{Concept} & \textbf{Type} & \textbf{No. Access} & \textbf{Access Type} \\
@@ -124,11 +120,10 @@ We will consider a span of a month to evaluate the volumes of the entities.
     \end{tabular}
     \end{table}
     
-    Access \textit{with} redundancy \texttt{Team.NoOperations}:
+    Access \textit{with} redundancy \texttt{Team.NoOrders}:
     
     \begin{table}[h!]
     \centering
-    \caption{Access analysis for assigning order to team (with redundancy)}
     \begin{tabular}{|l|c|c|c|}
     \hline
     \textbf{Concept} & \textbf{Type} & \textbf{No. Access} & \textbf{Access Type} \\
@@ -144,17 +139,16 @@ We will consider a span of a month to evaluate the volumes of the entities.
     \end{tabular}
     \end{table}
     
-    \textbf{Operation cost} (\textit{without redundancy}): $8 \; \text{accesses} \cdot 500 \; \text{days} = 4000 \; \text{accesses/day}$ 
+    \textbf{Operation cost} (\textit{without redundancy}): $8 \; \text{accesses} \cdot 500 = 4000 \; \text{accesses/day}$ 
 
-    \textbf{Operation cost} (\textit{with redundancy}): $11 \; \text{accesses} \cdot 500 \; \text{days} = 5500 \; \text{accesses/day}$
+    \textbf{Operation cost} (\textit{with redundancy}): $11 \; \text{accesses} \cdot 500 = 5500 \; \text{accesses/day}$
     
     \subsection*{Operation 4A: View the total number of operations handled by a specific team}
     
-    Access \textit{with} redundancy \texttt{Team.NoOperations}:
+    Access \textit{with} redundancy \texttt{Team.NoOrders}:
     
     \begin{table}[h!]
     \centering
-    \caption{Access analysis for viewing team operations (with redundancy)}
     \begin{tabular}{|l|c|c|c|}
     \hline
     \textbf{Concept} & \textbf{Type} & \textbf{No. Access} & \textbf{Access Type} \\
@@ -164,11 +158,10 @@ We will consider a span of a month to evaluate the volumes of the entities.
     \end{tabular}
     \end{table}
     
-    Access \textit{without} redundancy \texttt{Team.NoOperations}:
+    Access \textit{without} redundancy \texttt{Team.NoOrders}:
     
     \begin{table}[h!]
     \centering
-    \caption{Access analysis for viewing team operations (without redundancy)}
     \begin{tabular}{|l|c|c|c|}
     \hline
     \textbf{Concept}    & \textbf{Type} & \textbf{No. Access} & \textbf{Access Type} \\
@@ -178,20 +171,52 @@ We will consider a span of a month to evaluate the volumes of the entities.
     \end{tabular}
     \end{table}
     
-    \textbf{Operation cost} (\textit{with redundancy}): $1 \; \text{access} \cdot 200 \; \text{days} = 200 \; \text{accesses/day}$  
+    \textbf{Operation cost} (\textit{without redundancy}): $300 \; \text{accesses} \cdot 200 = 60000 \; \text{accesses/day}$
 
-    \textbf{Operation cost} (\textit{without redundancy}): $300 \; \text{accesses} \cdot 200 \; \text{days} = 60000 \; \text{accesses/day}$
+    \textbf{Operation cost} (\textit{with redundancy}): $1 \; \text{access} \cdot 200 = 200 \; \text{accesses/day}$  
+
     \subsection*{Operation 4B: Show the total cost of the orders handled by a specific team}
+    Access \textit{with} redundancy \texttt{Team.NoOrders}:
     
-    TODO
+    \begin{table}[H]
+        \centering
+        \begin{tabular}{|l|c|c|c|}
+        \hline
+        \textbf{Concept} & \textbf{Type} & \textbf{No. Access} & \textbf{Access Type} \\
+        \hline
+        Team    & E & 1 & R \\
+        \hline
+        \end{tabular}
+        \end{table}
     
+        Access \textit{without} redundancy \texttt{Team.NoOrders}:
+    
+    \begin{table}[h!]
+        \centering
+        \begin{tabular}{|l|c|c|c|}
+            \hline
+            \textbf{Concept} & \textbf{Type} & \textbf{No. Access} & \textbf{Access Type} \\
+            \hline
+            Team    & E & 1 & R \\
+            \hline
+            Handled & R & 300 & R \\
+            \hline
+            Order  & E & 300 & R \\
+            \hline
+        \end{tabular}
+    \end{table}
+    
+    \textbf{Operation cost} (\textit{without redundancy}): $601 \; \text{accesses} \cdot 200 = 60000 \; \text{accesses/day}$
+
+    \textbf{Operation cost} (\textit{with redundancy}): $1 \; \text{access} \cdot 200 = 200 \; \text{accesses/day}$  
+
+
     \subsection*{Operation 5: Print a list of teams sorted by their performance score}
     
     Access \textit{with} redundancy \texttt{Team.PerformanceScore}:
     
     \begin{table}[h!]
     \centering
-    \caption{Access analysis for sorting teams by performance (with redundancy)}
     \begin{tabular}{|l|c|c|c|}
     \hline
     \textbf{Concept} & \textbf{Type} & \textbf{No. Access} & \textbf{Access Type} \\
@@ -205,7 +230,6 @@ We will consider a span of a month to evaluate the volumes of the entities.
     
     \begin{table}[h!]
     \centering
-    \caption{Access analysis for sorting teams by performance (without redundancy)}
     \begin{tabular}{|l|c|c|c|}
     \hline
     \textbf{Concept} & \textbf{Type} & \textbf{No. Access} & \textbf{Access Type} \\
@@ -219,23 +243,38 @@ We will consider a span of a month to evaluate the volumes of the entities.
     \end{tabular}
     \end{table}
     
-    \textbf{Operation cost} (\textit{with redundancy}): $150 \; \text{accesses} \cdot 20 \; \text{days} = 3000 \; \text{accesses/day}$  
+    \textbf{Operation cost} (\textit{without redundancy}): $90150 \; \text{accesses} \cdot 20 = 1803000 \; \text{accesses/day}$
 
-    \textbf{Operation cost} (\textit{without redundancy}): $90150 \; \text{accesses} \cdot 20 \; \text{days} = 1803000 \; \text{accesses/day}$
+    \textbf{Operation cost} (\textit{with redundancy}): $150 \; \text{accesses} \cdot 20 = 3000 \; \text{accesses/day}$  
+
     
 
-\section{Redundancy Analyisis}
+\section*{Redundancy Analysis}
 \begin{itemize}[label=-]
-\item \texttt{OperationalCenter.NoEmployees}: given that there are no operations that involve this attribute, so we decide to \textbf{eliminate} the redundancy.
-\item \texttt{Team.NoOperations}: with the redundancy, we have 4200 accesses combining both Op. (3) and (4); on the other hand, without the redundancy, we have 65700 accesses. In the end, we decide to \textbf{maintain} the redundancy.
-\item \texttt{Team.PerformanceScore}: with the redundancy, we have 3000 accesses on Op. (5); on the other hand, without the redundancy, we have 1803000 accesses. In the end, we decide to \textbf{maintain} the redundancy.
+\item \texttt{OperationalCenter.NoEmployees}: Since no operations utilize this attribute, we decide to \textbf{eliminate} this redundancy.
+\item \texttt{Team.NoOrders}: The analysis shows 5,900 accesses with redundancy versus 124,000 accesses without redundancy when combining Operations (3), (4A), and (4B). Based on this significant difference, we decide to \textbf{maintain} this redundancy.
+\item \texttt{Team.PerformanceScore}: Operation (5) requires 3,000 accesses with redundancy compared to 1,803,000 accesses without it. Given this substantial performance impact, we decide to \textbf{maintain} this redundancy.
 \end{itemize}
 
-\section{Partitioning and Merging}
+
+\section*{Partitioning and Merging}
 \begin{itemize}[label=-]
-    \item Merging \texttt{Actual Order} and \texttt{Completed Order} into \texttt{Order}: given the fact that there are not operations that require to distinguish between the two entities, we can \textbf{merge} them into a single entity.
-    \item Merging \texttt{Individual} and \texttt{Business} into \texttt{Customer}: given the fact that there are not operations that require to distinguish between the two entities, we can \textbf{merge} them into a single entity.
+    \item Merging \texttt{Active Order} and \texttt{Completed Order} into \texttt{Order}: since no operations require distinguishing between these two entities, we can \textbf{merge} them into a single entity.
+    \item Merging \texttt{Individual} and \texttt{Business} into \texttt{Customer}: since no operations require distinguishing between these two types of customers, we can \textbf{merge} them into a single entity.
 \end{itemize}
 
-\subsection{Restructured Schema}
-INSERIRE SCHEMA UML
+\subsection*{Restructured Schema}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{img/UML.jpg}
+\end{figure}
+
+\subsection*{Other Details}
+\begin{itemize}[label=-]
+    \item When an Operational Center is deleted, the associated teams are also deleted, causing dereferencing of the orders linked to these teams.
+    \item When a Customer is deleted, the associated business accounts are also deleted, causing dereferencing of the orders linked to these accounts.
+    \item As a result of the previous observations, an order can be deleted only if there are not information for the business account (order history) or for the feedback computation.
+    \item The existence of a completion date in a order mark the order as completed, otherwise is active.
+    \item After a team is updated on an order, the list of employees is cleared.
+    \item We use AddressTY to define the composite attribute Address in OperationalCenterTY and CustomerTY.
+\end{itemize}
