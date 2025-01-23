@@ -1,1 +1,0 @@
-# DatabaseSystems-Notes

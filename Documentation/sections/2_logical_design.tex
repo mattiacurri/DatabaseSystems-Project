@@ -197,8 +197,6 @@ We will consider a span of a month to evaluate the volumes of the entities.
             \hline
             \textbf{Concept} & \textbf{Type} & \textbf{No. Access} & \textbf{Access Type} \\
             \hline
-            Team    & E & 1 & R \\
-            \hline
             Handled & R & 300 & R \\
             \hline
             Order  & E & 300 & R \\
@@ -206,7 +204,7 @@ We will consider a span of a month to evaluate the volumes of the entities.
         \end{tabular}
     \end{table}
     
-    \textbf{Operation cost} (\textit{without redundancy}): $601 \; \text{accesses} \cdot 200 = 60000 \; \text{accesses/day}$
+    \textbf{Operation cost} (\textit{without redundancy}): $600 \; \text{accesses} \cdot 200 = 120000 \; \text{accesses/day}$
 
     \textbf{Operation cost} (\textit{with redundancy}): $1 \; \text{access} \cdot 200 = 200 \; \text{accesses/day}$  
 
@@ -252,7 +250,7 @@ We will consider a span of a month to evaluate the volumes of the entities.
 \section*{Redundancy Analysis}
 \begin{itemize}[label=-]
 \item \texttt{OperationalCenter.NoEmployees}: Since no operations utilize this attribute, we decide to \textbf{eliminate} this redundancy.
-\item \texttt{Team.NoOrders}: The analysis shows 5,900 accesses with redundancy versus 124,000 accesses without redundancy when combining Operations (3), (4A), and (4B). Based on this significant difference, we decide to \textbf{maintain} this redundancy.
+\item \texttt{Team.NoOrders}: The analysis shows 5,900 accesses with redundancy versus 184,000 accesses without redundancy when combining Operations (3), (4A), and (4B). Based on this significant difference, we decide to \textbf{maintain} this redundancy.
 \item \texttt{Team.PerformanceScore}: Operation (5) requires 3,000 accesses with redundancy compared to 1,803,000 accesses without it. Given this substantial performance impact, we decide to \textbf{maintain} this redundancy.
 \end{itemize}
 
@@ -276,5 +274,5 @@ We will consider a span of a month to evaluate the volumes of the entities.
     \item As a result of the previous observations, an order can be deleted only if there are not information for the business account (order history) or for the feedback computation.
     \item The existence of a completion date in a order mark the order as completed, otherwise is active.
     \item After a team is updated on an order, the list of employees is cleared.
-    \item We use AddressTY to define the composite attribute Address in OperationalCenterTY and CustomerTY.
+    \item We use \texttt{AddressTY} to define the composite attribute \texttt{Address} in \texttt{OperationalCenterTY} and \texttt{CustomerTY}.
 \end{itemize}

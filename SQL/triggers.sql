@@ -1,4 +1,4 @@
-CONNECT brightway_admin/BRIGHTWAY_ADMIN;
+CONNECT brightway_admin/BRIGHTWAY_ADMIN@localhost:1521/xepdb1;
 
 CREATE OR REPLACE TRIGGER CheckOrderInsertOrUpdate
 BEFORE INSERT OR UPDATE ON OrderTB
@@ -165,7 +165,7 @@ END;
 CREATE OR REPLACE TYPE TeamRefList AS TABLE OF REF TeamTY;
 /
 CREATE OR REPLACE TRIGGER ComputePerformanceScore
-FOR INSERT OR UPDATE OR DELETE OF feedback ON OrderTB
+FOR INSERT OR UPDATE OR DELETE ON OrderTB
 COMPOUND TRIGGER
     changedTeams TeamRefList := TeamRefList();
 
@@ -201,6 +201,16 @@ BEGIN
            );
 END AFTER STATEMENT;
 
+END;
+/
+
+CREATE OR REPLACE TRIGGER CheckScore
+BEFORE INSERT OR UPDATE ON TeamTB
+FOR EACH ROW
+BEGIN
+    IF :NEW.numOrder = 0 AND :NEW.performanceScore != 1 THEN
+        :NEW.performanceScore := 1;
+    END IF;
 END;
 /
 

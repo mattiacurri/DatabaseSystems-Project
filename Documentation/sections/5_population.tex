@@ -92,16 +92,13 @@ END;
 \subsection*{populateEmployee}
 Inserts a specified number of employees into EmployeeTB, randomly associated with teams.
 \begin{lstlisting}
-CREATE OR REPLACE PROCEDURE populateEmployee(employeeCount IN NUMBER) AS
-    maxE NUMBER;
+    CREATE OR REPLACE PROCEDURE populateEmployee(employeeCount IN NUMBER) AS
     TYPE refTeamTB IS TABLE OF REF TeamTY INDEX BY PLS_INTEGER;
     teams refTeamTB;
     currentTeamIndex PLS_INTEGER := 1;
     employeesInCurrentTeam NUMBER := 0;
     cc VARCHAR2(15);
 BEGIN
-    SELECT NVL(MAX(TO_NUMBER(SUBSTR(e.FC, 2))), 0) INTO maxE FROM EmployeeTB e;
-    
     -- Bulk collect all teams
     SELECT REF(t) BULK COLLECT INTO teams
     FROM TeamTB t;
@@ -117,9 +114,8 @@ BEGIN
             END IF;
         END IF;
 
-        cc := LPAD(TO_CHAR(maxE + i), 15, '0');
         INSERT INTO EmployeeTB VALUES (
-            'E' || TO_CHAR(cc),
+            'E' || DBMS_RANDOM.STRING('U', 15),
             DBMS_RANDOM.STRING('U', 10),
             DBMS_RANDOM.STRING('U', 10),
             TO_DATE(
@@ -133,6 +129,7 @@ BEGIN
         employeesInCurrentTeam := employeesInCurrentTeam + 1;
     END LOOP;
 END;
+/
 \end{lstlisting}
 
 \subsection*{populateBusinessAccount}
@@ -140,7 +137,7 @@ Fills BusinessAccountTB with random entries referencing existing customers.
 \begin{lstlisting}
 CREATE OR REPLACE PROCEDURE populateBusinessAccount (numAccount IN NUMBER) AUTHID CURRENT_USER AS
     TYPE refCustomerTB IS TABLE OF REF CUSTOMERTY INDEX BY PLS_INTEGER;
-    customers refCustomerTB;    
+    customers refCustomerTB;
     randCustomer REF CUSTOMERTY;
     randIndex PLS_INTEGER;
 BEGIN
@@ -151,7 +148,7 @@ BEGIN
         randIndex := TRUNC(DBMS_RANDOM.VALUE(customers.FIRST, customers.LAST));
         randCustomer := customers(randIndex);
 
-        INSERT INTO businessAccountTB VALUES
+        INSERT INTO BusinessAccountTB values
         (
             RAWTOHEX(SYS_GUID()),
             sysdate,

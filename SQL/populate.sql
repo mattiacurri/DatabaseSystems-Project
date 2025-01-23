@@ -1,4 +1,4 @@
-CONNECT brightway_admin/BRIGHTWAY_ADMIN;
+CONNECT brightway_admin/BRIGHTWAY_ADMIN@localhost:1521/xepdb1;
 
 CREATE OR REPLACE PROCEDURE populateCustomer(individualCount IN NUMBER, businessCount IN NUMBER) AS
     maxC NUMBER;
@@ -80,15 +80,12 @@ END;
 /
 
 CREATE OR REPLACE PROCEDURE populateEmployee(employeeCount IN NUMBER) AS
-    maxE NUMBER;
     TYPE refTeamTB IS TABLE OF REF TeamTY INDEX BY PLS_INTEGER;
     teams refTeamTB;
     currentTeamIndex PLS_INTEGER := 1;
     employeesInCurrentTeam NUMBER := 0;
     cc VARCHAR2(15);
 BEGIN
-    SELECT NVL(MAX(TO_NUMBER(SUBSTR(e.FC, 2))), 0) INTO maxE FROM EmployeeTB e;
-    
     -- Bulk collect all teams
     SELECT REF(t) BULK COLLECT INTO teams
     FROM TeamTB t;
@@ -104,9 +101,8 @@ BEGIN
             END IF;
         END IF;
 
-        cc := LPAD(TO_CHAR(maxE + i), 15, '0');
         INSERT INTO EmployeeTB VALUES (
-            'E' || TO_CHAR(cc),
+            'E' || DBMS_RANDOM.STRING('U', 15),
             DBMS_RANDOM.STRING('U', 10),
             DBMS_RANDOM.STRING('U', 10),
             TO_DATE(
@@ -122,7 +118,7 @@ BEGIN
 END;
 /
 
-create or replace PROCEDURE populateBusinessAccount (numAccount IN NUMBER) AUTHID CURRENT_USER AS
+CREATE OR REPLACE PROCEDURE populateBusinessAccount (numAccount IN NUMBER) AUTHID CURRENT_USER AS
     TYPE refCustomerTB IS TABLE OF REF CUSTOMERTY INDEX BY PLS_INTEGER;
     customers refCustomerTB;
     randCustomer REF CUSTOMERTY;
@@ -135,7 +131,7 @@ BEGIN
         randIndex := TRUNC(DBMS_RANDOM.VALUE(customers.FIRST, customers.LAST));
         randCustomer := customers(randIndex);
 
-        insert into businessaccounttb values
+        INSERT INTO BusinessAccountTB values
         (
             RAWTOHEX(SYS_GUID()),
             sysdate,
@@ -143,7 +139,6 @@ BEGIN
         );
     END LOOP;
 END;
-
 /
 
 CREATE OR REPLACE PROCEDURE populateOrder(orderCount IN NUMBER, probability IN NUMBER) AS
@@ -317,73 +312,32 @@ END;
 -- SELECT COUNT(*) FROM OrderTB;
 -- /
 
-SELECT ID, numOrder 
-FROM TeamTB 
-WHERE numOrder = (SELECT MAX(numOrder) FROM TeamTB)
-FETCH FIRST 1 ROW ONLY;
-/
+-- SELECT ID, numOrder 
+-- FROM TeamTB 
+-- WHERE numOrder = (SELECT MAX(numOrder) FROM TeamTB)
+-- FETCH FIRST 1 ROW ONLY;
+-- /
 
--- First query: Select all orders for a specific team (e.g., team 'T000001')
-SELECT feedback
-FROM OrderTB o
-WHERE DEREF(o.team).ID = (SELECT ID
-FROM TeamTB 
-WHERE numOrder = (SELECT MAX(numOrder) FROM TeamTB) FETCH FIRST 1 ROW ONLY)
-ORDER BY o.placingDate;
-/
+-- -- First query: Select all orders for a specific team (e.g., team 'T000001')
+-- SELECT feedback
+-- FROM OrderTB o
+-- WHERE DEREF(o.team).ID = (SELECT ID
+-- FROM TeamTB 
+-- WHERE numOrder = (SELECT MAX(numOrder) FROM TeamTB) FETCH FIRST 1 ROW ONLY)
+-- ORDER BY o.placingDate;
+-- /
 
--- Second query: Select the performance score for the same team
-SELECT t.ID, t.name, t.performanceScore
-FROM TeamTB t
-WHERE t.ID = (SELECT ID
-FROM TeamTB 
-WHERE numOrder = (SELECT MAX(numOrder) FROM TeamTB) FETCH FIRST 1 ROW ONLY);
-/
+-- -- Second query: Select the performance score for the same team
+-- SELECT t.ID, t.name, t.performanceScore
+-- FROM TeamTB t
+-- WHERE t.ID = (SELECT ID
+-- FROM TeamTB 
+-- WHERE numOrder = (SELECT MAX(numOrder) FROM TeamTB) FETCH FIRST 1 ROW ONLY);
+-- /
 
-SELECT COUNT(*) from orderTB o where o.team IS NULL;
-SELECT COUNT(*) from orderTB o where o.team IS NOT NULL;
-/
+-- SELECT COUNT(*) from orderTB o where o.team IS NULL;
+-- SELECT COUNT(*) from orderTB o where o.team IS NOT NULL;
+-- /
 
 commit work;
 /
-
--- SELECT t.ID, t.numOrder
--- FROM TeamTB t 
--- order by t.numOrder desc;
-
-
--- DECLARE
---     v_team_id VARCHAR2(50);
---     v_num NUMBER;
--- BEGIN
---     -- Get the team ID with max number of orders
-
-    
---     SELECT t.ID, t.numOrder INTO v_team_id, v_num
---     FROM TeamTB t 
---     order by t.numOrder desc 
---     FETCH FIRST 1 ROW ONLY;
-    
---     -- Show orders for this team
---     dbms_output.put_line('Orders for team ' || v_team_id || ':');
---     FOR ord IN (
---         SELECT o.ID, o.placingDate, o.orderType, o.cost
---         FROM OrderTB o
---         WHERE DEREF(o.team).ID = v_team_id
---     ) LOOP
---         dbms_output.put_line('Order ID: ' || ord.ID || ', Date: ' || ord.placingDate || 
---                             ', Type: ' || ord.orderType || ', Cost: ' || ord.cost);
---     END LOOP;
-
---     -- Count orders for this team
---     DECLARE
---         v_count NUMBER;
---     BEGIN
---         SELECT COUNT(*) INTO v_count
---         FROM OrderTB o
---         WHERE DEREF(o.team).ID = v_team_id;
-        
---         dbms_output.put_line('Total orders for team ' || v_team_id || ': ' || v_count);
---     END;
--- END;
--- /

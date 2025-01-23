@@ -1,5 +1,5 @@
 -- Connect to Brightway admin
-CONNECT brightway_admin/BRIGHTWAY_ADMIN;
+CONNECT brightway_admin/BRIGHTWAY_ADMIN@localhost:1521/xepdb1;
 
 -- Types definition
 CREATE OR REPLACE TYPE AddressTY AS OBJECT (

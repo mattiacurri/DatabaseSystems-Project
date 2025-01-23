@@ -1,4 +1,4 @@
-This is LuaHBTeX, Version 1.17.0 (TeX Live 2023/Fedora 40)  (format=lualatex 2024.12.22)  23 JAN 2025 22:08
+This is LuaHBTeX, Version 1.17.0 (TeX Live 2023/Fedora 40)  (format=lualatex 2024.12.22)  23 JAN 2025 23:24
  system commands enabled.
  file:line:error style messages enabled.
 **/home/mattia/Scrivania/DBProject/Documentation/main
@@ -1647,8 +1647,12 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 <img/UML.jpg, id=186, 1376.14125pt x 1153.30875pt>
 File: img/UML.jpg Graphic file (type jpg)
 <use img/UML.jpg>
-Package luatex.def Info: img/UML.jpg  used on input line 269.
+Package luatex.def Info: img/UML.jpg  used on input line 267.
 (luatex.def)             Requested size: 391.51169pt x 328.11568pt.
+
+Overfull \hbox (28.72032pt too wide) in paragraph at lines 277--278
+[]\T1/mdbch/m/n/12 We use \T1/pcr/m/n/12 AddressTY \T1/mdbch/m/n/12 to de-fine the com-pos-ite at-tribute \T1/pcr/m/n/12 Address \T1/mdbch/m/n/12 in \T1/pcr/m/n/12 OperationalCenterTY
+ []
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -1707,62 +1711,26 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 Chapter 5.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 21.
-LaTeX Font Info:    Trying to load font information for T1+lmr on input line 21.
+(textcomp)             Default family used instead on input line 24.
+LaTeX Font Info:    Trying to load font information for T1+lmr on input line 24.
 (/usr/share/texlive/texmf-dist/tex/latex/lm/t1lmr.fd
 File: t1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
-Package textcomp Info: Symbol \textminus not provided by
-(textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 21.
-LaTeX Font Info:    Font shape `T1/mdbch/m/n' will be
-(Font)              scaled to size 14.97614pt on input line 21.
-Package textcomp Info: Symbol \textminus not provided by
-(textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 24.
-Package textcomp Info: Symbol \textminus not provided by
-(textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 28.
-Package textcomp Info: Symbol \textminus not provided by
-(textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 28.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
 (textcomp)             Default family used instead on input line 31.
  [23]
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 35.
-Package textcomp Info: Symbol \textminus not provided by
-(textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 35.
-Package textcomp Info: Symbol \textminus not provided by
-(textcomp)             font family mdbch in TS1 encoding.
 (textcomp)             Default family used instead on input line 41.
-Package textcomp Info: Symbol \textminus not provided by
-(textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 45.
-Package textcomp Info: Symbol \textminus not provided by
-(textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 45.
+LaTeX Font Info:    Font shape `T1/mdbch/m/n' will be
+(Font)              scaled to size 14.97614pt on input line 47.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
 (textcomp)             Default family used instead on input line 52.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 56.
-Package textcomp Info: Symbol \textminus not provided by
-(textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 56.
-Package textcomp Info: Symbol \textminus not provided by
-(textcomp)             font family mdbch in TS1 encoding.
 (textcomp)             Default family used instead on input line 60.
-Package textcomp Info: Symbol \textminus not provided by
-(textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 65.
-Package textcomp Info: Symbol \textminus not provided by
-(textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 65.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
@@ -1775,12 +1743,6 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [24]
-Package textcomp Info: Symbol \textminus not provided by
-(textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 73.
-Package textcomp Info: Symbol \textminus not provided by
-(textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 73.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
 (textcomp)             Default family used instead on input line 75.
@@ -1838,9 +1800,6 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [27]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
-
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
@@ -1867,7 +1826,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 [30]
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 356.
+(textcomp)             Default family used instead on input line 367.
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -1920,22 +1879,22 @@ Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             Default family used instead on input line 83.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 105.
+(textcomp)             Default family used instead on input line 102.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 105.
+(textcomp)             Default family used instead on input line 102.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 110.
+(textcomp)             Default family used instead on input line 107.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 110.
+(textcomp)             Default family used instead on input line 107.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 114.
+(textcomp)             Default family used instead on input line 111.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 114.
+(textcomp)             Default family used instead on input line 111.
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -1947,22 +1906,22 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 [35]
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 126.
+(textcomp)             Default family used instead on input line 122.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 126.
+(textcomp)             Default family used instead on input line 122.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 126.
+(textcomp)             Default family used instead on input line 122.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 126.
+(textcomp)             Default family used instead on input line 122.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 147.
+(textcomp)             Default family used instead on input line 144.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 147.
+(textcomp)             Default family used instead on input line 144.
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -1974,22 +1933,22 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 [36]
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 185.
+(textcomp)             Default family used instead on input line 182.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 185.
+(textcomp)             Default family used instead on input line 182.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 194.
+(textcomp)             Default family used instead on input line 191.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 194.
+(textcomp)             Default family used instead on input line 191.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 194.
+(textcomp)             Default family used instead on input line 191.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 194.
+(textcomp)             Default family used instead on input line 191.
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -2001,19 +1960,16 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 [37]
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 216.
+(textcomp)             Default family used instead on input line 213.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 216.
+(textcomp)             Default family used instead on input line 213.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 216.
+(textcomp)             Default family used instead on input line 213.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 216.
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
+(textcomp)             Default family used instead on input line 213.
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -2025,40 +1981,40 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 [38]
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 246.
+(textcomp)             Default family used instead on input line 243.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 246.
+(textcomp)             Default family used instead on input line 243.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 251.
+(textcomp)             Default family used instead on input line 248.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 251.
+(textcomp)             Default family used instead on input line 248.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 256.
+(textcomp)             Default family used instead on input line 253.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 256.
+(textcomp)             Default family used instead on input line 253.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 258.
+(textcomp)             Default family used instead on input line 255.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 258.
+(textcomp)             Default family used instead on input line 255.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 260.
+(textcomp)             Default family used instead on input line 257.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 260.
+(textcomp)             Default family used instead on input line 257.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 268.
+(textcomp)             Default family used instead on input line 265.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 268.
+(textcomp)             Default family used instead on input line 265.
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -2070,10 +2026,16 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 [39]
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 287.
+(textcomp)             Default family used instead on input line 284.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 287.
+(textcomp)             Default family used instead on input line 284.
+Package textcomp Info: Symbol \textminus not provided by
+(textcomp)             font family mdbch in TS1 encoding.
+(textcomp)             Default family used instead on input line 286.
+Package textcomp Info: Symbol \textminus not provided by
+(textcomp)             font family mdbch in TS1 encoding.
+(textcomp)             Default family used instead on input line 286.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
 (textcomp)             Default family used instead on input line 289.
@@ -2082,16 +2044,10 @@ Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             Default family used instead on input line 289.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 292.
+(textcomp)             Default family used instead on input line 289.
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 292.
-Package textcomp Info: Symbol \textminus not provided by
-(textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 292.
-Package textcomp Info: Symbol \textminus not provided by
-(textcomp)             font family mdbch in TS1 encoding.
-(textcomp)             Default family used instead on input line 292.
+(textcomp)             Default family used instead on input line 289.
 ) (./sections/6_functions.tex
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -2140,27 +2096,27 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 [44]
 Chapter 8.
-<img/phys/op1-1.png, id=1102, 817.0525pt x 168.63pt>
+<img/phys/op1-1.png, id=1106, 817.0525pt x 168.63pt>
 File: img/phys/op1-1.png Graphic file (type png)
 <use img/phys/op1-1.png>
 Package luatex.def Info: img/phys/op1-1.png  used on input line 8.
 (luatex.def)             Requested size: 391.51169pt x 80.8051pt.
-<img/phys/op2-1.png, id=1103, 784.9325pt x 306.14375pt>
+<img/phys/op2-1.png, id=1107, 784.9325pt x 306.14375pt>
 File: img/phys/op2-1.png Graphic file (type png)
 <use img/phys/op2-1.png>
 Package luatex.def Info: img/phys/op2-1.png  used on input line 19.
 (luatex.def)             Requested size: 391.51169pt x 152.70245pt.
-<img/phys/op2-3.png, id=1104, 1110.1475pt x 109.40875pt>
+<img/phys/op2-3.png, id=1108, 1110.1475pt x 109.40875pt>
 File: img/phys/op2-3.png Graphic file (type png)
 <use img/phys/op2-3.png>
 Package luatex.def Info: img/phys/op2-3.png  used on input line 23.
 (luatex.def)             Requested size: 391.51169pt x 38.5841pt.
-<img/phys/op2-2.png, id=1105, 783.92876pt x 324.21124pt>
+<img/phys/op2-2.png, id=1109, 783.92876pt x 324.21124pt>
 File: img/phys/op2-2.png Graphic file (type png)
 <use img/phys/op2-2.png>
 Package luatex.def Info: img/phys/op2-2.png  used on input line 29.
 (luatex.def)             Requested size: 391.51169pt x 161.92218pt.
-<img/phys/op2-4.png, id=1106, 1111.15125pt x 125.46875pt>
+<img/phys/op2-4.png, id=1110, 1111.15125pt x 125.46875pt>
 File: img/phys/op2-4.png Graphic file (type png)
 <use img/phys/op2-4.png>
 Package luatex.def Info: img/phys/op2-4.png  used on input line 33.
@@ -2168,22 +2124,22 @@ Package luatex.def Info: img/phys/op2-4.png  used on input line 33.
 [45
 
 <./img/phys/op1-1.png><./img/phys/op2-1.png><./img/phys/op2-3.png>]
-<img/phys/op3-1.png, id=1117, 784.9325pt x 370.38374pt>
+<img/phys/op3-1.png, id=1121, 784.9325pt x 370.38374pt>
 File: img/phys/op3-1.png Graphic file (type png)
 <use img/phys/op3-1.png>
 Package luatex.def Info: img/phys/op3-1.png  used on input line 42.
 (luatex.def)             Requested size: 391.51169pt x 184.74493pt.
-<img/phys/op3-2.png, id=1118, 1112.155pt x 176.66pt>
+<img/phys/op3-2.png, id=1122, 1112.155pt x 176.66pt>
 File: img/phys/op3-2.png Graphic file (type png)
 <use img/phys/op3-2.png>
 Package luatex.def Info: img/phys/op3-2.png  used on input line 46.
 (luatex.def)             Requested size: 391.51169pt x 62.19043pt.
-<img/phys/op4A-1.png, id=1119, 780.9175pt x 307.1475pt>
+<img/phys/op4A-1.png, id=1123, 780.9175pt x 307.1475pt>
 File: img/phys/op4A-1.png Graphic file (type png)
 <use img/phys/op4A-1.png>
 Package luatex.def Info: img/phys/op4A-1.png  used on input line 54.
 (luatex.def)             Requested size: 391.51169pt x 153.9858pt.
-<img/phys/op4A-2.png, id=1120, 1111.15125pt x 112.42pt>
+<img/phys/op4A-2.png, id=1124, 1111.15125pt x 112.42pt>
 File: img/phys/op4A-2.png Graphic file (type png)
 <use img/phys/op4A-2.png>
 Package luatex.def Info: img/phys/op4A-2.png  used on input line 58.
@@ -2197,22 +2153,22 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [46<./img/phys/op2-2.png><./img/phys/op2-4.png><./img/phys/op3-1.png><./img/phys/op3-2.png>]
-<img/phys/op4B-1.png, id=1134, 798.985pt x 304.13625pt>
+<img/phys/op4B-1.png, id=1138, 798.985pt x 304.13625pt>
 File: img/phys/op4B-1.png Graphic file (type png)
 <use img/phys/op4B-1.png>
 Package luatex.def Info: img/phys/op4B-1.png  used on input line 66.
 (luatex.def)             Requested size: 391.51169pt x 149.0327pt.
-<img/phys/op4B-2.png, id=1135, 1111.15125pt x 112.42pt>
+<img/phys/op4B-2.png, id=1139, 1111.15125pt x 112.42pt>
 File: img/phys/op4B-2.png Graphic file (type png)
 <use img/phys/op4B-2.png>
 Package luatex.def Info: img/phys/op4B-2.png  used on input line 70.
 (luatex.def)             Requested size: 391.51169pt x 39.61176pt.
-<img/phys/op5-1.png, id=1136, 629.35126pt x 306.14375pt>
+<img/phys/op5-1.png, id=1140, 629.35126pt x 306.14375pt>
 File: img/phys/op5-1.png Graphic file (type png)
 <use img/phys/op5-1.png>
 Package luatex.def Info: img/phys/op5-1.png  used on input line 78.
 (luatex.def)             Requested size: 391.51169pt x 190.44713pt.
-<img/phys/op5-2.png, id=1137, 1114.1625pt x 77.28876pt>
+<img/phys/op5-2.png, id=1141, 1114.1625pt x 77.28876pt>
 File: img/phys/op5-2.png Graphic file (type png)
 <use img/phys/op5-2.png>
 Package luatex.def Info: img/phys/op5-2.png  used on input line 82.
@@ -2236,19 +2192,19 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 [48<./img/phys/op5-1.png><./img/phys/op5-2.png>]
 Chapter 9.
 
-Overfull \hbox (30.081pt too wide) in paragraph at lines 20--21
+Overfull \hbox (30.081pt too wide) in paragraph at lines 18--19
 []\T1/mdbch/m/n/12 Pro-ce-dure and func-tion calls (e.g., \T1/pcr/m/n/12 registerCustomer\T1/mdbch/m/n/12 , \T1/pcr/m/n/12 addOrder\T1/mdbch/m/n/12 , or \T1/pcr/m/n/12 assignOrderToTeam\T1/mdbch/m/n/12 )
  []
 
-<img/web_app/home.png, id=1158, 1926.19624pt x 938.50626pt>
+<img/web_app/home.png, id=1162, 1926.19624pt x 938.50626pt>
 File: img/web_app/home.png Graphic file (type png)
 <use img/web_app/home.png>
-Package luatex.def Info: img/web_app/home.png  used on input line 24.
+Package luatex.def Info: img/web_app/home.png  used on input line 22.
 (luatex.def)             Requested size: 391.51169pt x 190.74817pt.
-<img/web_app/customer_i.png, id=1159, 1926.19624pt x 938.50626pt>
+<img/web_app/customer_i.png, id=1163, 1926.19624pt x 938.50626pt>
 File: img/web_app/customer_i.png Graphic file (type png)
 <use img/web_app/customer_i.png>
-Package luatex.def Info: img/web_app/customer_i.png  used on input line 30.
+Package luatex.def Info: img/web_app/customer_i.png  used on input line 28.
 (luatex.def)             Requested size: 391.51169pt x 190.74817pt.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
@@ -2256,20 +2212,20 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
  [49
 
 <./img/web_app/home.png>]
-<img/web_app/customer_b.png, id=1166, 1926.19624pt x 938.50626pt>
+<img/web_app/customer_b.png, id=1170, 1926.19624pt x 938.50626pt>
 File: img/web_app/customer_b.png Graphic file (type png)
 <use img/web_app/customer_b.png>
-Package luatex.def Info: img/web_app/customer_b.png  used on input line 36.
+Package luatex.def Info: img/web_app/customer_b.png  used on input line 34.
 (luatex.def)             Requested size: 391.51169pt x 190.74817pt.
-<img/web_app/add.png, id=1167, 1926.19624pt x 938.50626pt>
+<img/web_app/add.png, id=1171, 1926.19624pt x 938.50626pt>
 File: img/web_app/add.png Graphic file (type png)
 <use img/web_app/add.png>
-Package luatex.def Info: img/web_app/add.png  used on input line 42.
+Package luatex.def Info: img/web_app/add.png  used on input line 40.
 (luatex.def)             Requested size: 391.51169pt x 190.74817pt.
-<img/web_app/assign.png, id=1168, 1926.19624pt x 938.50626pt>
+<img/web_app/assign.png, id=1172, 1926.19624pt x 938.50626pt>
 File: img/web_app/assign.png Graphic file (type png)
 <use img/web_app/assign.png>
-Package luatex.def Info: img/web_app/assign.png  used on input line 48.
+Package luatex.def Info: img/web_app/assign.png  used on input line 46.
 (luatex.def)             Requested size: 391.51169pt x 190.74817pt.
 
 
@@ -2280,15 +2236,15 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [50<./img/web_app/customer_i.png><./img/web_app/customer_b.png><./img/web_app/add.png>]
-<img/web_app/stats.png, id=1179, 1926.19624pt x 938.50626pt>
+<img/web_app/stats.png, id=1183, 1926.19624pt x 938.50626pt>
 File: img/web_app/stats.png Graphic file (type png)
 <use img/web_app/stats.png>
-Package luatex.def Info: img/web_app/stats.png  used on input line 54.
+Package luatex.def Info: img/web_app/stats.png  used on input line 52.
 (luatex.def)             Requested size: 391.51169pt x 190.74817pt.
-<img/web_app/list.png, id=1180, 1926.19624pt x 938.50626pt>
+<img/web_app/list.png, id=1184, 1926.19624pt x 938.50626pt>
 File: img/web_app/list.png Graphic file (type png)
 <use img/web_app/list.png>
-Package luatex.def Info: img/web_app/list.png  used on input line 60.
+Package luatex.def Info: img/web_app/list.png  used on input line 58.
 (luatex.def)             Requested size: 391.51169pt x 190.74817pt.
 )
 \tf@thm=\write6
@@ -2311,19 +2267,19 @@ Package rerunfilecheck Info: File `main.out' has not changed.
 )
 
 Here is how much of LuaTeX's memory you used:
- 41317 strings out of 478285
- 381780,1977958 words of node,token memory allocated
+ 41323 strings out of 478285
+ 381785,1977958 words of node,token memory allocated
  1641 words of node memory still in use:
    31 hlist, 2 vlist, 14 rule, 2 glue, 4 kern, 2 glyph, 80 attribute, 122 glue_spec, 80 attribute_list, 2 write, 24 pdf_literal, 24 pdf_colorstack nodes
-   avail lists: 1:1,2:4616,3:559,4:684,5:9154,6:113,7:17192,8:26,9:18630,10:33,11:940
- 58519 multiletter control sequences out of 65536+600000
+   avail lists: 1:1,2:4336,3:560,4:686,5:8770,6:113,7:16715,8:26,9:17886,10:33,11:900
+ 58521 multiletter control sequences out of 65536+600000
  124 fonts using 7970343 bytes
  94i,18n,128p,1235b,815s stack positions out of 10000i,1000n,20000p,200000b,200000s
 {/usr/share/texlive/texmf-dist/fonts/enc/dvips/lm/lm-ts1.enc}{/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}{/usr/share/texlive/texmf-dist/fonts/enc/dvips/ly1/texnansi.enc}</usr/share/texlive/texmf-dist/fonts/type1/bitstrea/charter/bchb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/bitstrea/charter/bchr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/bitstrea/charter/bchri8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmr12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/mathdesign/mdbch/md-chr7t.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/mathdesign/mdbch/md-chr7y.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/mathdesign/mdbch/md-chr8t.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb>
-Output written on main.pdf (51 pages, 2627219 bytes).
+Output written on main.pdf (51 pages, 2627309 bytes).
 
-PDF statistics: 1254 PDF objects out of 1440 (max. 8388607)
- 1108 compressed objects within 12 object streams
- 885 named destinations out of 1000 (max. 131072)
+PDF statistics: 1258 PDF objects out of 1440 (max. 8388607)
+ 1112 compressed objects within 12 object streams
+ 889 named destinations out of 1000 (max. 131072)
  328 words of extra memory for PDF output out of 10000 (max. 100000000)
 

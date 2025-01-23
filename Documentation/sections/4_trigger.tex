@@ -18,21 +18,21 @@ FOR EACH ROW
 DECLARE
     cnt NUMBER;
 BEGIN
-    -- * FUNZIONA 
+    
     IF :NEW.completionDate IS NULL THEN
         IF :NEW.feedback IS NOT NULL THEN
             RAISE_APPLICATION_ERROR(-20001, 'Feedback cannot be given without completion date');
         END IF;
     END IF;
 
-    -- * FUNZIONA
+
     IF INSERTING THEN
         IF :NEW.team IS NULL AND :NEW.completionDate IS NOT NULL THEN
             RAISE_APPLICATION_ERROR(-20010, 'Team must be assigned before completion date');
         END IF;
     END IF;
 
-    -- * FUNZIONA
+
     IF UPDATING THEN
         IF :OLD.completionDate IS NOT NULL AND 
             ((:OLD.team IS NULL AND :NEW.team IS NOT NULL) OR
@@ -42,7 +42,7 @@ BEGIN
         END IF;
     END IF;
 
-    -- * FUNZIONA
+
     IF :NEW.employees IS NOT NULL AND :NEW.employees.COUNT > 0 AND :NEW.team IS NOT NULL THEN
         SELECT COUNT(*) INTO cnt FROM TABLE(:NEW.employees) emp_ref
         JOIN EmployeeTB e ON (emp_ref.column_value = REF(e))
@@ -53,7 +53,7 @@ BEGIN
         END IF;
     END IF;
 
-    -- * FUNZIONA
+
     IF UPDATING THEN
         IF :OLD.completionDATE IS NOT NULL THEN
             IF :NEW.employees IS NOT NULL OR (:OLD.employees IS NOT NULL AND :NEW.employees IS NULL) THEN
@@ -62,7 +62,7 @@ BEGIN
         END IF;
     END IF;
 
-    -- * FUNZIONA
+
     IF :NEW.team IS NULL AND :NEW.employees IS NOT NULL AND :NEW.employees.COUNT > 0 THEN
         SELECT e.team INTO :NEW.team
         FROM TABLE(:NEW.employees) emp_ref
@@ -70,7 +70,7 @@ BEGIN
         FETCH FIRST 1 ROW ONLY;
     END IF;
 
-    -- * FUNZIONA
+
     IF :NEW.feedback IS NOT NULL AND :NEW.feedback.score IS NULL THEN
         RAISE_APPLICATION_ERROR(-20020, 'Feedback score cannot be null');
     END IF;
@@ -169,7 +169,7 @@ END;
 \end{lstlisting}
 
 \subsection*{CheckNumEmployeeInTeam}
-Ensures a team cannot exceed 8 employees. This trigger makes use of a compound trigger to store the team reference and toavoid the mutating table problem:
+Ensures a team cannot exceed 8 employees. This trigger makes use of a compound trigger to store the team reference and to avoid the mutating table problem:
 \begin{lstlisting}
 CREATE OR REPLACE TRIGGER CheckNumEmployeeInTeam
 FOR INSERT OR UPDATE OF team ON EmployeeTB
@@ -194,10 +194,8 @@ END;
 \subsection*{ComputePerformanceScore}
 Recalculates a team's average feedback score whenever a new order is added, updated or inserted. It stores the team affected by the operation, and compute the new score of them:
 \begin{lstlisting}
-CREATE OR REPLACE TYPE TeamRefList AS TABLE OF REF TeamTY;
-
 CREATE OR REPLACE TRIGGER ComputePerformanceScore
-FOR INSERT OR UPDATE OR DELETE OF feedback ON OrderTB
+FOR INSERT OR UPDATE OR DELETE ON OrderTB
 COMPOUND TRIGGER
     changedTeams TeamRefList := TeamRefList();
 
@@ -233,6 +231,19 @@ BEGIN
             );
 END AFTER STATEMENT;
 
+END;
+\end{lstlisting}
+
+\subsection*{CheckScore}
+Handle the dangling references not caught by \texttt{ComputePerformanceScore}:
+\begin{lstlisting}
+CREATE OR REPLACE TRIGGER CheckScore
+BEFORE INSERT OR UPDATE ON TeamTB
+FOR EACH ROW
+BEGIN
+    IF :NEW.numOrder = 0 AND :NEW.performanceScore != 1 THEN
+        :NEW.performanceScore := 1;
+    END IF;
 END;
 \end{lstlisting}
 
@@ -313,7 +324,7 @@ END;
 \subsection*{DeleteOrdersAfterAccount}
 Deletes orders that have lost their related business account, under certain conditions:
 \begin{itemize}[label=-]
-    \item The business account reference is null and the feedback score is null.
+    \item The business account reference is null and the completion date is null.
     \item The business account reference is null and the team reference is null.
 \end{itemize}
 In either case, there is no possibility of having useful information to compute the performance score, and there is no need to retain the order history because the order is not associated with any customer.
