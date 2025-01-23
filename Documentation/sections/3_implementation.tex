@@ -1,18 +1,7 @@
--- Connect to Brightway admin
-CONNECT brightway_admin/BRIGHTWAY_ADMIN;
+\chapter{Implementation}
 
-DROP TYPE AddressTY FORCE;
-DROP TYPE OperationalCenterTY FORCE;
-DROP TYPE TeamTY FORCE;
-DROP TYPE EmployeeVA FORCE;
-DROP TYPE EmployeeTY FORCE;
-DROP TYPE FeedbackTY FORCE;
-DROP TYPE BusinessAccountTY FORCE;
-DROP TYPE CustomerTY FORCE;
-DROP TYPE OrderTY FORCE;
-/
-
--- Types definition
+\section{Types definition}
+\begin{lstlisting}[language=SQL]
 CREATE OR REPLACE TYPE AddressTY AS OBJECT (
     street VARCHAR2(50),
     civicNum NUMBER,
@@ -21,12 +10,16 @@ CREATE OR REPLACE TYPE AddressTY AS OBJECT (
     region VARCHAR2(50),
     state VARCHAR2(50)
 );
-/
+\end{lstlisting}
+
+\begin{lstlisting}[language=SQL]
 CREATE OR REPLACE TYPE OperationalCenterTY AS OBJECT (
     name VARCHAR2(50),
     address AddressTY
 );
-/
+\end{lstlisting}
+
+\begin{lstlisting}[language=SQL]
 CREATE OR REPLACE TYPE TeamTY AS OBJECT (
     ID VARCHAR2(50), -- Format: TXXXXXX
     name VARCHAR2(20),
@@ -34,7 +27,9 @@ CREATE OR REPLACE TYPE TeamTY AS OBJECT (
     performanceScore NUMBER(4, 2),
     operationalCenter ref OperationalCenterTY
 );
-/
+\end{lstlisting}
+
+\begin{lstlisting}[language=SQL]
 CREATE OR REPLACE TYPE EmployeeTY AS OBJECT (
     FC VARCHAR2(16),
     name VARCHAR2(20),
@@ -44,14 +39,16 @@ CREATE OR REPLACE TYPE EmployeeTY AS OBJECT (
     email VARCHAR2(50),
     team ref TeamTY
 );
-/
+\end{lstlisting}
 
+\begin{lstlisting}[language=SQL]    
 CREATE OR REPLACE TYPE FeedbackTY AS OBJECT (
     score NUMBER(1), -- check (score between 1 and 5),
     commentF VARCHAR2(1000)
 );
-/
+\end{lstlisting}
 
+\begin{lstlisting}[language=SQL]    
 CREATE OR REPLACE TYPE CustomerTY AS OBJECT (
     VAT VARCHAR2(11),
     phone VARCHAR2(14),
@@ -63,18 +60,21 @@ CREATE OR REPLACE TYPE CustomerTY AS OBJECT (
     companyName VARCHAR2(50),
     address AddressTY
 ) NOT FINAL;
-/
+\end{lstlisting}
 
+\begin{lstlisting}[language=SQL]    
 CREATE OR REPLACE TYPE BusinessAccountTY AS OBJECT (
     CODE VARCHAR2(10), -- Format: BXXXXXXXXX
     creationDate DATE,
     customer ref CustomerTY
 );
-/
+\end{lstlisting}
 
+\begin{lstlisting}[language=SQL]
 CREATE OR REPLACE TYPE EmployeeVA AS VARRAY(8) OF REF EmployeeTY;
-/
+\end{lstlisting}
 
+\begin{lstlisting}[language=SQL]    
 CREATE OR REPLACE TYPE OrderTY AS OBJECT (
     ID VARCHAR2(10), -- Format: OXXXXXXXXX
     placingDate DATE,
@@ -86,34 +86,27 @@ CREATE OR REPLACE TYPE OrderTY AS OBJECT (
     employees EmployeeVA,
     completionDate DATE,
     feedback FeedbackTY
-);
-/
+\end{lstlisting}
 
--- TABLE CREATION
-
-DROP TABLE OperationalCenterTB FORCE;
-DROP TABLE TeamTB FORCE;
-DROP TABLE EmployeeTB FORCE;
-DROP TABLE CustomerTB FORCE;
-DROP TABLE BusinessAccountTB FORCE;
-DROP TABLE OrderTB FORCE;
-/
-
+\section{Table definition}
+\begin{lstlisting}[language=SQL]
 CREATE TABLE OperationalCenterTB OF OperationalCenterTY (
     name PRIMARY KEY,
     address NOT NULL
-);
-/ 
+); 
+\end{lstlisting}
 
+\begin{lstlisting}[language=SQL]
 CREATE TABLE TeamTB OF TeamTY (
-    ID PRIMARY KEY check (REGEXP_LIKE(ID, '^T[0-9]{6}$')),
+    ID PRIMARY KEY,
     name NOT NULL,
     numOrder check (numOrder >= 0),
     performanceScore check (performanceScore between 1 and 5),
     operationalCenter NOT NULL
 );
-/
+\end{lstlisting}
 
+\begin{lstlisting}[language=SQL]
 CREATE TABLE EmployeeTB OF EmployeeTY (
     FC PRIMARY KEY CHECK (LENGTH(FC) = 16),
     name NOT NULL,
@@ -122,25 +115,28 @@ CREATE TABLE EmployeeTB OF EmployeeTY (
     phone NOT NULL,
     email NOT NULL
 );
-/
+\end{lstlisting}
 
+\begin{lstlisting}[language=SQL]
 CREATE TABLE CustomerTB OF CustomerTY (
     VAT PRIMARY KEY CHECK (LENGTH(VAT) = 11),
     phone NOT NULL,
     email NOT NULL,
     type NOT NULL CHECK (type IN ('individual', 'business'))
 );
-/
+\end{lstlisting}
 
+\begin{lstlisting}[language=SQL]
 CREATE TABLE BusinessAccountTB OF BusinessAccountTY (
-    CODE PRIMARY KEY CHECK (REGEXP_LIKE(CODE, '^B[0-9]{9}$')),
+    CODE PRIMARY KEY,
     creationDate NOT NULL,
     customer NOT NULL
 );
-/
+\end{lstlisting}
 
+\begin{lstlisting}[language=SQL]
 CREATE TABLE OrderTB OF OrderTY (
-    ID PRIMARY KEY CHECK (REGEXP_LIKE(ID, '^O[0-9]{9}$')),
+    ID PRIMARY KEY,
     placingDate NOT NULL,
     orderMode NOT NULL CHECK (orderMode IN ('online', 'phone', 'email')),
     orderType NOT NULL CHECK (orderType IN ('regular', 'urgent', 'bulk')),
@@ -150,4 +146,4 @@ CREATE TABLE OrderTB OF OrderTY (
     check (placingDate <= completionDate),
     check (feedback.score between 1 and 5)
 );
-/
+\end{lstlisting}
