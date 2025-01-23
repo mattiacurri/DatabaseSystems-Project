@@ -1,22 +1,8 @@
+CONNECT brightway_admin/BRIGHTWAY_ADMIN;
+
 CREATE OR REPLACE PROCEDURE populateCustomer(individualCount IN NUMBER, businessCount IN NUMBER) AS
-x Number;
 BEGIN
     dbms_output.put_line('Populating Customer table...');
-    SELECT COUNT(*) INTO x FROM CustomerTB WHERE VAT = '00000000000';
-    IF x = 0 THEN
-    dbms_output.put_line('Inserting Dummy customer...');
-        INSERT INTO CustomerTB VALUES (
-            '00000000000',
-            '+390000000000',
-            'dummy@dummy.com',
-            'individual',
-            'dummy',
-            'dummy',
-            TO_DATE('01/01/1971', 'DD/MM/YYYY'),
-            NULL,
-            NULL
-        );
-    END IF;
     FOR i in 1..individualCount LOOP
         INSERT INTO CustomerTB VALUES (
             'IT' || TO_CHAR(DBMS_RANDOM.value(100000000, 999999999), 'FM000000000'),
@@ -75,6 +61,7 @@ END;
 /
 
 CREATE OR REPLACE PROCEDURE populateTeam(teamCount IN NUMBER) AS
+cnt NUMBER;
 BEGIN
     dbms_output.put_line('Populating Team table...');
     FOR i in 1..teamCount LOOP
@@ -115,15 +102,6 @@ CREATE OR REPLACE PROCEDURE populateBusinessAccount(accountCount IN NUMBER) AS
 x NUMBER;
 BEGIN
     dbms_output.put_line('Populating BusinessAccount table...');
-    SELECT COUNT(*) INTO x FROM BusinessAccountTB WHERE CODE = 'B000000000';
-    if x = 0 THEN
-    dbms_output.put_line('Inserting Dummy businessaccount...');
-        INSERT INTO BusinessAccountTB VALUES (
-            'B000000000',
-            SYSDATE,
-            (SELECT REF(c) FROM CustomerTB c WHERE c.type = 'individual' AND c.VAT = '00000000000')
-        );
-    end if;
     FOR i in 1..accountCount LOOP
         INSERT INTO BusinessAccountTB VALUES (
             'B' ||  TO_CHAR(DBMS_RANDOM.value(100000000, 999999999), 'FM000000000'),
@@ -138,36 +116,57 @@ BEGIN
 END;
 /
 
-CREATE OR REPLACE PROCEDURE populateOrder(orderCount IN NUMBER) AS
+CREATE OR REPLACE PROCEDURE populateOrder(orderCount IN NUMBER, probability IN NUMBER) AS
     empTeam TeamTY;
 BEGIN
     dbms_output.put_line('Populating Order table...');
     FOR i in 1..orderCount LOOP
-        SELECT DEREF(e.team) INTO empTeam 
-        FROM (SELECT * FROM EmployeeTB e ORDER BY dbms_random.value()) e 
-        FETCH FIRST 1 ROW ONLY;
-
-        INSERT INTO OrderTB VALUES (
-            'O' || TO_CHAR(DBMS_RANDOM.value(100000000, 999999999), 'FM000000000'),
-            TO_DATE(
-                TRUNC(DBMS_RANDOM.VALUE(TO_CHAR(DATE '2010-01-01', 'J'), TO_CHAR(DATE '2020-12-31', 'J'))), 'J'),
-            CASE
-                WHEN DBMS_RANDOM.VALUE(0, 1) < 0.33 THEN 'online'
-                WHEN DBMS_RANDOM.VALUE(0, 1) < 0.66 THEN 'phone'
-                ELSE 'email'
-            END,
-            CASE
-                WHEN DBMS_RANDOM.VALUE(0, 1) < 0.33 THEN 'regular'
-                WHEN DBMS_RANDOM.VALUE(0, 1) < 0.66 THEN 'urgent'
-                ELSE 'bulk'
-            END,
-            DBMS_RANDOM.VALUE(1, 10000),
-            (SELECT * FROM (SELECT REF(b) FROM BusinessAccountTB b ORDER BY dbms_random.value()) FETCH FIRST 1 ROW ONLY),
-            (SELECT * FROM (SELECT REF(t) FROM TeamTB t ORDER BY dbms_random.value()) FETCH FIRST 1 ROW ONLY),
-            NULL,
-            NULL,
-            NULL
-        );
+        -- 50% probability of having a team
+        IF DBMS_RANDOM.VALUE(0, 1) < probability THEN
+            INSERT INTO OrderTB VALUES (
+                'O' || TO_CHAR(DBMS_RANDOM.value(100000000, 999999999), 'FM000000000'),
+                TO_DATE(
+                    TRUNC(DBMS_RANDOM.VALUE(TO_CHAR(DATE '2010-01-01', 'J'), TO_CHAR(DATE '2020-12-31', 'J'))), 'J'),
+                CASE
+                    WHEN DBMS_RANDOM.VALUE(0, 1) < 0.33 THEN 'online'
+                    WHEN DBMS_RANDOM.VALUE(0, 1) < 0.66 THEN 'phone'
+                    ELSE 'email'
+                END,
+                CASE
+                    WHEN DBMS_RANDOM.VALUE(0, 1) < 0.33 THEN 'regular'
+                    WHEN DBMS_RANDOM.VALUE(0, 1) < 0.66 THEN 'urgent'
+                    ELSE 'bulk'
+                END,
+                DBMS_RANDOM.VALUE(1, 10000),
+                (SELECT * FROM (SELECT REF(b) FROM BusinessAccountTB b ORDER BY dbms_random.value()) FETCH FIRST 1 ROW ONLY),
+                (SELECT * FROM (SELECT REF(t) FROM TeamTB t ORDER BY dbms_random.value()) FETCH FIRST 1 ROW ONLY),
+                NULL,
+                NULL,
+                NULL
+            );
+        ELSE
+            INSERT INTO OrderTB VALUES (
+                'O' || TO_CHAR(DBMS_RANDOM.value(100000000, 999999999), 'FM000000000'),
+                TO_DATE(
+                    TRUNC(DBMS_RANDOM.VALUE(TO_CHAR(DATE '2010-01-01', 'J'), TO_CHAR(DATE '2020-12-31', 'J'))), 'J'),
+                CASE
+                    WHEN DBMS_RANDOM.VALUE(0, 1) < 0.33 THEN 'online'
+                    WHEN DBMS_RANDOM.VALUE(0, 1) < 0.66 THEN 'phone'
+                    ELSE 'email'
+                END,
+                CASE
+                    WHEN DBMS_RANDOM.VALUE(0, 1) < 0.33 THEN 'regular'
+                    WHEN DBMS_RANDOM.VALUE(0, 1) < 0.66 THEN 'urgent'
+                    ELSE 'bulk'
+                END,
+                DBMS_RANDOM.VALUE(1, 10000),
+                (SELECT * FROM (SELECT REF(b) FROM BusinessAccountTB b ORDER BY dbms_random.value()) FETCH FIRST 1 ROW ONLY),
+                NULL,
+                NULL,
+                NULL,
+                NULL
+            );
+        END IF;
     END LOOP;
     dbms_output.put_line('Order table populated.');
 END;
@@ -177,7 +176,7 @@ CREATE OR REPLACE PROCEDURE populateEmployeeInOrder(probability IN NUMBER) AS
     teamRef REF TeamTY;
 BEGIN
     dbms_output.put_line('Populating Employee in Order...');
-    FOR orderRow IN (SELECT o.ID, DEREF(o.team) AS team FROM OrderTB o) LOOP
+    FOR orderRow IN (SELECT o.ID, DEREF(o.team) AS team FROM OrderTB o WHERE o.team IS NOT NULL AND o.completionDate IS NULL AND o.feedback IS NULL) LOOP
         -- Only process orders based on probability
         IF DBMS_RANDOM.VALUE(0, 1) <= probability THEN
             -- Create temporary varray
@@ -219,7 +218,7 @@ v_team_name VARCHAR2(50);
 v_team_score NUMBER;
 BEGIN
     dbms_output.put_line('Populating Completion Date and Feedback in Order...');
-    FOR orderRow IN (SELECT o.ID FROM OrderTB o) LOOP
+    FOR orderRow IN (SELECT o.ID FROM OrderTB o WHERE o.team IS NOT NULL AND o.completionDate IS NULL AND O.feedback IS NULL) LOOP
         -- Only process orders based on probability
         IF DBMS_RANDOM.VALUE(0, 1) <= probability THEN
             -- Update the order with the new completion date and feedback
@@ -245,7 +244,7 @@ BEGIN
             WHERE t.ID = (SELECT DEREF(o.team).ID FROM OrderTB o WHERE o.ID = orderRow.ID);
         
             -- print the team id, name and performance score
-            dbms_output.put_line('Team ' || v_team_id || ' (' || v_team_name || ') has performance score ' || v_team_score);
+            -- dbms_output.put_line('Team ' || v_team_id || ' (' || v_team_name || ') has performance score ' || v_team_score);
         END IF;
     END LOOP;
     dbms_output.put_line('Completion Date and Feedback in Order populated.');
@@ -259,9 +258,9 @@ BEGIN
     populateBusinessAccount(100);
     populateTeam(100); 
     populateEmployee(100);
-    populateOrder(1000);
-    populateEmployeeInOrder(0.6);
-    populateCompletionDateAndFeedbackInOrder(0.6);
+    populateOrder(1000, 0.5);
+    populateEmployeeInOrder(0.5);
+    populateCompletionDateAndFeedbackInOrder(0.2);
     dbms_output.put_line('Population completed.');
 END;
 /
@@ -288,6 +287,10 @@ WHERE t.ID = (SELECT ID
 FROM TeamTB 
 WHERE numOrder = (SELECT MAX(numOrder) FROM TeamTB) FETCH FIRST 1 ROW ONLY);
 /
+
+SELECT COUNT(*) from orderTB o where o.team IS NULL;
+SELECT COUNT(*) from orderTB o where o.team IS NOT NULL;
+
 
 commit work;
 /
@@ -330,135 +333,5 @@ commit work;
         
 --         dbms_output.put_line('Total orders for team ' || v_team_id || ': ' || v_count);
 --     END;
--- END;
--- /
-
--- TODO: provare a fare sta roba, per ora non funziona
--- BEGIN
---     -- First, drop the chain if it already exists
---     BEGIN
---         DBMS_SCHEDULER.drop_chain('populate_chain', FORCE => TRUE);
---     EXCEPTION
---         WHEN OTHERS THEN
---             NULL; -- Ignore if chain doesn't exist
---     END;
-
---     -- Create the chain
---     DBMS_SCHEDULER.create_chain(
---         chain_name => 'populate_chain',
---         rule_set   => NULL,
---         evaluation_interval => NULL,
---         comments    => 'Chain to populate database tables in parallel with dependencies'
---     );
-
---     -- Define chain steps (each procedure becomes a step)
---     DBMS_SCHEDULER.define_chain_step(
---         chain_name => 'populate_chain',
---         step_name  => 'customer_step',
---         job_action => 'BEGIN populateCustomer(100, 100); END;'
---     );
-
---     DBMS_SCHEDULER.define_chain_step(
---         chain_name => 'populate_chain',
---         step_name  => 'center_step',
---         job_action => 'BEGIN populateOperationalCenter(10); END;'
---     );
-
---     DBMS_SCHEDULER.define_chain_step(
---         chain_name => 'populate_chain',
---         step_name  => 'account_step',
---         job_action => 'BEGIN populateBusinessAccount(100); END;'
---     );
-
---     DBMS_SCHEDULER.define_chain_step(
---         chain_name => 'populate_chain',
---         step_name  => 'team_step',
---         job_action => 'BEGIN populateTeam(100); END;'
---     );
-
---     DBMS_SCHEDULER.define_chain_step(
---         chain_name => 'populate_chain',
---         step_name  => 'employee_step',
---         job_action => 'BEGIN populateEmployee(100); END;'
---     );
-
---     DBMS_SCHEDULER.define_chain_step(
---         chain_name => 'populate_chain',
---         step_name  => 'order_step',
---         job_action => 'BEGIN populateOrder(1000); END;'
---     );
-
---     DBMS_SCHEDULER.define_chain_step(
---         chain_name => 'populate_chain',
---         step_name  => 'emp_in_order_step',
---         job_action => 'BEGIN populateEmployeeInOrder(0.5); END;'
---     );
-
---     -- Define chain rules to manage dependencies and parallel execution
-
---     -- Start customer_step and center_step immediately
---     DBMS_SCHEDULER.define_chain_rule(
---         chain_name => 'populate_chain',
---         condition  => 'TRUE',
---         action     => 'START customer_step, center_step'
---     );
-
---     -- account_step starts after customer_step completes
---     DBMS_SCHEDULER.define_chain_rule(
---         chain_name => 'populate_chain',
---         condition  => 'customer_step COMPLETED',
---         action     => 'START account_step'
---     );
-
---     -- team_step starts after center_step completes
---     DBMS_SCHEDULER.define_chain_rule(
---         chain_name => 'populate_chain',
---         condition  => 'center_step COMPLETED',
---         action     => 'START team_step'
---     );
-
---     -- employee_step starts after team_step completes
---     DBMS_SCHEDULER.define_chain_rule(
---         chain_name => 'populate_chain',
---         condition  => 'team_step COMPLETED',
---         action     => 'START employee_step'
---     );
-
---     -- order_step starts after employee_step completes
---     DBMS_SCHEDULER.define_chain_rule(
---         chain_name => 'populate_chain',
---         condition  => 'employee_step COMPLETED',
---         action     => 'START order_step'
---     );
-
---     -- emp_in_order_step starts after order_step completes
---     DBMS_SCHEDULER.define_chain_rule(
---         chain_name => 'populate_chain',
---         condition  => 'order_step COMPLETED',
---         action     => 'START emp_in_order_step'
---     );
-
---     -- End the chain after emp_in_order_step completes
---     DBMS_SCHEDULER.define_chain_rule(
---         chain_name => 'populate_chain',
---         condition  => 'emp_in_order_step COMPLETED',
---         action     => 'END'
---     );
-
---     -- Enable the chain
---     DBMS_SCHEDULER.enable('populate_chain');
-
---     -- Create a job to run the chain
---     DBMS_SCHEDULER.create_job(
---         job_name   => 'job_populate_chain',
---         job_type   => 'CHAIN',
---         job_action => 'populate_chain',
---         start_date => SYSTIMESTAMP,
---         enabled    => TRUE,
---         auto_drop  => FALSE,
---         comments   => 'Job to execute populate_chain'
---     );
-
---     DBMS_OUTPUT.put_line('Chain created and job started.');
 -- END;
 -- /
