@@ -15,9 +15,17 @@ CREATE OR REPLACE PROCEDURE registerCustomer(
     customer CustomerTY;
 BEGIN
     IF type = 'individual' THEN
-        customer := CustomerTY(VAT, phone, email, type, name, surname, dob, NULL, address);
+        IF VAT IS NULL THEN
+            customer := CustomerTY(SYS_GUID(), phone, email, type, name, surname, dob, NULL, NULL);
+        ELSE
+            customer := CustomerTY(VAT, phone, email, type, name, surname, dob, NULL, NULL);
+        END IF;
     ELSIF type = 'business' THEN
-        customer := CustomerTY(VAT, phone, email, type, NULL, NULL, NULL, companyName, address);
+        IF VAT IS NULL THEN
+            customer := CustomerTY(SYS_GUID(), phone, email, type, NULL, NULL, NULL, companyName, address);
+        ELSE
+            customer := CustomerTY(VAT, phone, email, type, NULL, NULL, NULL, companyName, address);
+        END IF;
     ELSE
         RAISE_APPLICATION_ERROR(-20000, 'Invalid customer type; must be either individual or business');
     END IF;
@@ -42,8 +50,11 @@ BEGIN
     INTO baRef
     FROM BusinessAccountTB b
     WHERE b.CODE = businessAccountName;
-
-    INSERT INTO OrderTB (ID, placingDate, orderMode, orderType, cost, businessAccount, employees) VALUES (ID, placingDate, orderMode, orderType, cost, baRef, employees);
+    IF ID IS NULL THEN
+        INSERT INTO OrderTB (ID, placingDate, orderMode, orderType, cost, businessAccount, employees) VALUES (sys_GUID(), placingDate, orderMode, orderType, cost, baRef, employees);
+    ELSE
+        INSERT INTO OrderTB (ID, placingDate, orderMode, orderType, cost, businessAccount, employees) VALUES (ID, placingDate, orderMode, orderType, cost, baRef, employees);
+    END IF;
     COMMIT;
 END;
 /
@@ -129,7 +140,7 @@ END;
 
 
 -- Operation 1 == Explain plan
-EXPLAIN PLAN FOR INSERT INTO CustomerTB VALUES ('12345678901', '123456789', 'a@a.com', 'individual', 'John', 'Doe', TO_DATE('01-01-2000', 'DD-MM-YYYY'), NULL, NULL);
+EXPLAIN PLAN FOR INSERT INTO CustomerTB VALUES (sys_guid(), '123456789', 'a@a.com', 'individual', 'John', 'Doe', TO_DATE('01-01-2000', 'DD-MM-YYYY'), NULL, NULL);
 
 SELECT * FROM table(DBMS_XPLAN.DISPLAY);
 /
@@ -142,19 +153,8 @@ WHERE b.CODE = 'B000000001');
 SELECT * FROM table(DBMS_XPLAN.DISPLAY);
 /
 
--- Operation 3 == Explain Plan
 EXPLAIN PLAN FOR
 INSERT INTO OrderTB (ID, placingDate, orderMode, orderType, cost, businessAccount, employees) VALUES ('O000001111', SYSDATE, 'online', 'regular', 100.00, (SELECT REF(b) FROM BusinessAccountTB b WHERE b.CODE = 'B000000001'), EmployeeVA());
-
-SELECT * FROM table(DBMS_XPLAN.DISPLAY);
-/
-
--- Explain plan for INSERT INTO OrderTB
-EXPLAIN PLAN FOR
-INSERT INTO OrderTB (ID, placingDate, orderMode, orderType, cost, businessAccount, employees)
-VALUES ('O000001111', SYSDATE, 'online', 'regular', 100.00, (SELECT REF(b) FROM BusinessAccountTB b
-WHERE b.CODE = 'B000000001'), EmployeeVA());
-
 SELECT * FROM table(DBMS_XPLAN.DISPLAY);
 /
 
@@ -171,21 +171,20 @@ SELECT * FROM table(DBMS_XPLAN.DISPLAY);
 EXPLAIN PLAN FOR
 SELECT numOrder
 FROM TeamTB
-WHERE ID = 'T000001';
+WHERE ID = '2C6535D4B8FF9D06E063020012AC4D2C';
 
 SELECT * FROM table(DBMS_XPLAN.DISPLAY);
 /
 
 -- Operation 4B == Explain Plan
--- TODO: PRENDERE QUELLO CON PIU ORDINI
+-- * teamId con piu ordini
 EXPLAIN PLAN FOR
 SELECT SUM(cost)
 FROM OrderTB o
-WHERE o.team.ID = 'T000001';
+WHERE o.team.ID = '2C6535D4B8FF9D06E063020012AC4D2C';
 
 SELECT * FROM table(DBMS_XPLAN.DISPLAY);
 /
-
 
 -- Operation 5 == Explain Plan
 EXPLAIN PLAN FOR

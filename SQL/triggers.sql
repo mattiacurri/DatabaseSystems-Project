@@ -6,21 +6,21 @@ FOR EACH ROW
 DECLARE
     cnt NUMBER;
 BEGIN
-    -- * FUNZIONA 
+ 
     IF :NEW.completionDate IS NULL THEN
         IF :NEW.feedback IS NOT NULL THEN
             RAISE_APPLICATION_ERROR(-20001, 'Feedback cannot be given without completion date');
         END IF;
     END IF;
 
-    -- * FUNZIONA
+
     IF INSERTING THEN
         IF :NEW.team IS NULL AND :NEW.completionDate IS NOT NULL THEN
             RAISE_APPLICATION_ERROR(-20010, 'Team must be assigned before completion date');
         END IF;
     END IF;
 
-    -- * FUNZIONA
+
     IF UPDATING THEN
         IF :OLD.completionDate IS NOT NULL AND 
            ((:OLD.team IS NULL AND :NEW.team IS NOT NULL) OR
@@ -30,7 +30,7 @@ BEGIN
         END IF;
     END IF;
 
-    -- * FUNZIONA
+
     IF :NEW.employees IS NOT NULL AND :NEW.employees.COUNT > 0 AND :NEW.team IS NOT NULL THEN
         SELECT COUNT(*) INTO cnt FROM TABLE(:NEW.employees) emp_ref
         JOIN EmployeeTB e ON (emp_ref.column_value = REF(e))
@@ -41,7 +41,7 @@ BEGIN
         END IF;
     END IF;
 
-    -- * FUNZIONA
+
     IF UPDATING THEN
         IF :OLD.completionDATE IS NOT NULL THEN
             IF :NEW.employees IS NOT NULL OR (:OLD.employees IS NOT NULL AND :NEW.employees IS NULL) THEN
@@ -50,17 +50,22 @@ BEGIN
         END IF;
     END IF;
 
-    -- * FUNZIONA
+
     IF :NEW.team IS NULL AND :NEW.employees IS NOT NULL AND :NEW.employees.COUNT > 0 THEN
         SELECT e.team INTO :NEW.team
         FROM TABLE(:NEW.employees) emp_ref
         JOIN EmployeeTB e ON (emp_ref.column_value = REF(e))
         FETCH FIRST 1 ROW ONLY;
     END IF;
+
+
+    IF :NEW.feedback IS NOT NULL AND :NEW.feedback.score IS NULL THEN
+        RAISE_APPLICATION_ERROR(-20020, 'Feedback score cannot be null');
+    END IF;
 END;
 /
 
--- -- * FUNZIONA
+--
 CREATE OR REPLACE TRIGGER CheckCustomerType
 BEFORE INSERT OR UPDATE ON CustomerTB
 FOR EACH ROW
@@ -86,58 +91,48 @@ BEGIN
 END;
 /
 
-CREATE OR REPLACE TRIGGER UpdateNumOrders
-AFTER INSERT OR UPDATE OR DELETE ON OrderTB
+CREATE OR REPLACE TRIGGER UpdateNumOrdersBeforeInsert
+BEFORE INSERT ON OrderTB
 FOR EACH ROW
-DECLARE
-    v_old_team TeamTY;
-    v_new_team TeamTY;
 BEGIN
-    IF INSERTING THEN
-        IF :NEW.team IS NOT NULL THEN
-            SELECT DEREF(:NEW.team) INTO v_new_team FROM DUAL;
-            UPDATE TeamTB
-            SET numOrder = numOrder + 1
-            WHERE ID = v_new_team.ID;
-        END IF;
-    ELSIF DELETING THEN
-        IF :OLD.team IS NOT NULL THEN
-            SELECT DEREF(:OLD.team) INTO v_old_team FROM DUAL;
-            UPDATE TeamTB
-            SET numOrder = numOrder - 1
-            WHERE ID = v_old_team.ID;
-        END IF;
-    ELSIF UPDATING AND :OLD.team != :NEW.team THEN
-        IF :OLD.team IS NULL AND :NEW.team IS NOT NULL THEN
-            -- New team assigned
-            SELECT DEREF(:NEW.team) INTO v_new_team FROM DUAL;
-            UPDATE TeamTB
-            SET numOrder = numOrder + 1
-            WHERE ID = v_new_team.ID;
-        ELSIF :OLD.team IS NOT NULL AND :NEW.team IS NOT NULL THEN
-            -- Team changed
-            SELECT DEREF(:OLD.team) INTO v_old_team FROM DUAL;
-            SELECT DEREF(:NEW.team) INTO v_new_team FROM DUAL;
-            
-            UPDATE TeamTB
-            SET numOrder = numOrder - 1
-            WHERE ID = v_old_team.ID;
-
-            UPDATE TeamTB
-            SET numOrder = numOrder + 1
-            WHERE ID = v_new_team.ID;
-        ELSIF :OLD.team IS NOT NULL AND :NEW.team IS NULL THEN
-            -- Team removed
-            SELECT DEREF(:OLD.team) INTO v_old_team FROM DUAL;
-            UPDATE TeamTB
-            SET numOrder = numOrder - 1
-            WHERE ID = v_old_team.ID;
-        END IF;
+    IF :NEW.team IS NOT NULL THEN
+        UPDATE TeamTB t
+           SET t.numOrder = t.numOrder + 1
+         WHERE REF(t) = :NEW.team;
     END IF;
 END;
 /
 
--- * FUNZIONA
+CREATE OR REPLACE TRIGGER UpdateNumOrdersBeforeDelete
+BEFORE DELETE ON OrderTB
+FOR EACH ROW
+BEGIN
+    IF :OLD.team IS NOT NULL THEN
+        UPDATE TeamTB t
+           SET t.numOrder = t.numOrder - 1
+         WHERE REF(t) = :OLD.team;
+    END IF;
+END;
+/
+
+CREATE OR REPLACE TRIGGER UpdateNumOrdersBeforeUpdate
+BEFORE UPDATE OF team ON OrderTB
+FOR EACH ROW
+BEGIN
+    IF :OLD.team IS NOT NULL THEN
+        UPDATE TeamTB t
+           SET t.numOrder = t.numOrder - 1
+         WHERE REF(t) = :OLD.team;
+    END IF;
+
+    IF :NEW.team IS NOT NULL THEN
+        UPDATE TeamTB t
+           SET t.numOrder = t.numOrder + 1
+         WHERE REF(t) = :NEW.team;
+    END IF;
+END;
+/
+
 CREATE OR REPLACE TRIGGER CheckTeamInsertInitialization
 BEFORE INSERT ON TeamTB
 FOR EACH ROW
@@ -147,10 +142,9 @@ BEGIN
 END;
 /
 
--- * FUNZIONA
-create or replace trigger CheckNumEmployeeInTeam
-for insert or update of team on EmployeeTB
-compound trigger
+CREATE OR REPLACE TRIGGER CheckNumEmployeeInTeam
+FOR INSERT OR UPDATE OF team ON EmployeeTB
+COMPOUND TRIGGER
     cnt number;
     teamRef REF TeamTY;
 BEFORE EACH ROW IS
@@ -160,40 +154,60 @@ END BEFORE EACH ROW;
 
 AFTER STATEMENT IS
 BEGIN
-    select count (*) into cnt from EmployeeTB e where e.team = teamRef;
-    if (cnt > 8) then
-         RAISE_APPLICATION_ERROR(-20001, 'Max number of employee reached');
-    end if;
-end after statement;
-end;
+    SELECT COUNT(*) INTO cnt FROM EmployeeTB e WHERE e.team = teamRef;
+    IF cnt > 8 THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Max number of employee reached');
+    END IF;
+    END AFTER STATEMENT;
+END;
 /
 
--- * FUNZIONA
+CREATE OR REPLACE TYPE TeamRefList AS TABLE OF REF TeamTY;
+/
 CREATE OR REPLACE TRIGGER ComputePerformanceScore
-AFTER INSERT OR UPDATE ON OrderTB
+FOR INSERT OR UPDATE OR DELETE OF feedback ON OrderTB
+COMPOUND TRIGGER
+    changedTeams TeamRefList := TeamRefList();
+
+BEFORE EACH ROW IS
 BEGIN
-    -- Update performance scores for all teams that have orders with feedback
+    IF DELETING OR UPDATING THEN
+        IF :OLD.feedback IS NOT NULL AND :OLD.team IS NOT NULL THEN
+            changedTeams.EXTEND;
+            changedTeams(changedTeams.LAST) := :OLD.team;
+        END IF;
+    END IF;
+
+    IF INSERTING OR UPDATING THEN
+        IF :NEW.feedback IS NOT NULL AND :NEW.team IS NOT NULL THEN
+            changedTeams.EXTEND;
+            changedTeams(changedTeams.LAST) := :NEW.team;
+        END IF;
+    END IF;
+END BEFORE EACH ROW;
+
+AFTER STATEMENT IS
+BEGIN
     UPDATE TeamTB t
-    SET t.performanceScore = (
-        SELECT ROUND(AVG(o.feedback.score), 2)
-        FROM OrderTB o
-        WHERE o.team = REF(t)
-        AND o.feedback IS NOT NULL
-    )
-    WHERE EXISTS (
-        SELECT 1
-        FROM OrderTB o
-        WHERE o.team = REF(t)
-        AND o.feedback IS NOT NULL
-    );
+       SET t.performanceScore = (
+               SELECT ROUND(AVG(o.feedback.score), 2)
+                 FROM OrderTB o
+                WHERE o.team = REF(t)
+                  AND o.feedback IS NOT NULL
+           )
+     WHERE REF(t) IN (
+               SELECT COLUMN_VALUE
+                 FROM TABLE(changedTeams)
+           );
+END AFTER STATEMENT;
+
 END;
 /
 
 
--- * FUNZIONA
-create or replace trigger AddAccount
-for insert on CustomerTB
-compound trigger
+CREATE OR REPLACE TRIGGER AddAccount
+FOR INSERT ON CustomerTB
+COMPOUND TRIGGER
     customer VARCHAR2(11);
 BEFORE EACH ROW IS
 BEGIN
@@ -201,14 +215,16 @@ BEGIN
 END BEFORE EACH ROW;
 
 AFTER STATEMENT IS
+    v_code VARCHAR2(10);
+    v_exists NUMBER;
 BEGIN
     insert into BusinessAccountTB values (
-        'B' || TO_CHAR(DBMS_RANDOM.value(100000000, 999999999), 'FM000000000'),
+        sys_guid(),
         sysdate, 
         (SELECT REF(c) FROM CustomerTB c WHERE c.VAT = customer)
     );
-end after statement;
-end;
+END AFTER STATEMENT;
+END;
 /
 
 CREATE OR REPLACE TRIGGER DeleteTeamAfterOperationalCenter
@@ -245,6 +261,7 @@ END;
 CREATE OR REPLACE TRIGGER DeleteOrdersAfterTeam
 AFTER DELETE ON TeamTB
 BEGIN
+    DBMS_OUTPUT.PUT_LINE('Deleting orders after team deletion');
     -- delete order that have lost the references of the team and don't have a business account associated
     DELETE FROM OrderTB o
     WHERE DEREF(o.team) IS NULL AND o.team IS NOT NULL AND DEREF(o.businessAccount) IS NULL AND o.businessAccount IS NOT NULL;
@@ -255,7 +272,7 @@ CREATE OR REPLACE TRIGGER DeleteOrdersAfterAccount
 AFTER DELETE ON BusinessAccountTB
 BEGIN
     DELETE FROM OrderTB o
-    WHERE DEREF(o.businessAccount) IS NULL AND o.businessAccount IS NOT NULL AND o.feedback.score IS NULL;
+    WHERE DEREF(o.businessAccount) IS NULL AND o.businessAccount IS NOT NULL AND o.completionDate IS NULL;
 
     DELETE FROM OrderTB o
     WHERE DEREF(o.businessAccount) IS NULL AND o.businessAccount IS NOT NULL AND (o.team IS NOT NULL AND DEREF(o.team) IS NULL);

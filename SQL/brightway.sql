@@ -1,17 +1,6 @@
 -- Connect to Brightway admin
 CONNECT brightway_admin/BRIGHTWAY_ADMIN;
 
-DROP TYPE AddressTY FORCE;
-DROP TYPE OperationalCenterTY FORCE;
-DROP TYPE TeamTY FORCE;
-DROP TYPE EmployeeVA FORCE;
-DROP TYPE EmployeeTY FORCE;
-DROP TYPE FeedbackTY FORCE;
-DROP TYPE BusinessAccountTY FORCE;
-DROP TYPE CustomerTY FORCE;
-DROP TYPE OrderTY FORCE;
-/
-
 -- Types definition
 CREATE OR REPLACE TYPE AddressTY AS OBJECT (
     street VARCHAR2(50),
@@ -28,7 +17,7 @@ CREATE OR REPLACE TYPE OperationalCenterTY AS OBJECT (
 );
 /
 CREATE OR REPLACE TYPE TeamTY AS OBJECT (
-    ID VARCHAR2(50), -- Format: TXXXXXX
+    ID VARCHAR2(32),
     name VARCHAR2(20),
     numOrder NUMBER,
     performanceScore NUMBER(4, 2),
@@ -66,7 +55,7 @@ CREATE OR REPLACE TYPE CustomerTY AS OBJECT (
 /
 
 CREATE OR REPLACE TYPE BusinessAccountTY AS OBJECT (
-    CODE VARCHAR2(10), -- Format: BXXXXXXXXX
+    CODE VARCHAR2(32),
     creationDate DATE,
     customer ref CustomerTY
 );
@@ -76,7 +65,7 @@ CREATE OR REPLACE TYPE EmployeeVA AS VARRAY(8) OF REF EmployeeTY;
 /
 
 CREATE OR REPLACE TYPE OrderTY AS OBJECT (
-    ID VARCHAR2(10), -- Format: OXXXXXXXXX
+    ID VARCHAR2(32),
     placingDate DATE,
     orderMode VARCHAR2(6), -- CHECK (orderMode IN ('online', 'phone', 'email')),
     orderType VARCHAR2(7), -- CHECK (orderType IN ('regular', 'urgent', 'bulk')),
@@ -90,15 +79,6 @@ CREATE OR REPLACE TYPE OrderTY AS OBJECT (
 /
 
 -- TABLE CREATION
-
-DROP TABLE OperationalCenterTB FORCE;
-DROP TABLE TeamTB FORCE;
-DROP TABLE EmployeeTB FORCE;
-DROP TABLE CustomerTB FORCE;
-DROP TABLE BusinessAccountTB FORCE;
-DROP TABLE OrderTB FORCE;
-/
-
 CREATE TABLE OperationalCenterTB OF OperationalCenterTY (
     name PRIMARY KEY,
     address NOT NULL
@@ -106,7 +86,7 @@ CREATE TABLE OperationalCenterTB OF OperationalCenterTY (
 / 
 
 CREATE TABLE TeamTB OF TeamTY (
-    ID PRIMARY KEY check (REGEXP_LIKE(ID, '^T[0-9]{6}$')),
+    ID DEFAULT RAWTOHEX(SYS_GUID()) PRIMARY KEY,
     name NOT NULL,
     numOrder check (numOrder >= 0),
     performanceScore check (performanceScore between 1 and 5),
@@ -133,14 +113,14 @@ CREATE TABLE CustomerTB OF CustomerTY (
 /
 
 CREATE TABLE BusinessAccountTB OF BusinessAccountTY (
-    CODE PRIMARY KEY CHECK (REGEXP_LIKE(CODE, '^B[0-9]{9}$')),
+    CODE DEFAULT RAWTOHEX(SYS_GUID()) PRIMARY KEY, -- CHECK (REGEXP_LIKE(CODE, '^B[0-9]{9}$')),
     creationDate NOT NULL,
     customer NOT NULL
 );
 /
 
 CREATE TABLE OrderTB OF OrderTY (
-    ID PRIMARY KEY CHECK (REGEXP_LIKE(ID, '^O[0-9]{9}$')),
+    ID DEFAULT RAWTOHEX(SYS_GUID()) PRIMARY KEY, -- CHECK (REGEXP_LIKE(ID, '^O[0-9]{9}$')),
     placingDate NOT NULL,
     orderMode NOT NULL CHECK (orderMode IN ('online', 'phone', 'email')),
     orderType NOT NULL CHECK (orderType IN ('regular', 'urgent', 'bulk')),

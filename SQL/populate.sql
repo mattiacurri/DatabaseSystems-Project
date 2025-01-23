@@ -1,11 +1,15 @@
 CONNECT brightway_admin/BRIGHTWAY_ADMIN;
 
 CREATE OR REPLACE PROCEDURE populateCustomer(individualCount IN NUMBER, businessCount IN NUMBER) AS
+    maxC NUMBER;
+    cc VARCHAR2(11);
 BEGIN
-    dbms_output.put_line('Populating Customer table...');
+    SELECT NVL(MAX(TO_NUMBER(SUBSTR(c.VAT, 3))), 0) INTO maxC FROM CustomerTB c;
+
     FOR i in 1..individualCount LOOP
+        cc := LPAD(TO_CHAR(maxC + i), 9, '0');
         INSERT INTO CustomerTB VALUES (
-            'IT' || TO_CHAR(DBMS_RANDOM.value(100000000, 999999999), 'FM000000000'),
+            'IT' || TO_CHAR(cc),
             '+39' || TO_CHAR(DBMS_RANDOM.value(3000000000, 3999999999), 'FM0000000000'),
             DBMS_RANDOM.STRING('U', 10) || '@gmail.com',
             'individual',
@@ -16,9 +20,13 @@ BEGIN
             NULL
         );
     END LOOP;
+    
+    SELECT NVL(MAX(TO_NUMBER(SUBSTR(c.VAT, 3))), 0) INTO maxC FROM CustomerTB c;
+    
     FOR i in 1..businessCount LOOP
+        cc := LPAD(TO_CHAR(maxC + i), 9, '0');
         INSERT INTO CustomerTB VALUES (
-            'IT' || TO_CHAR(DBMS_RANDOM.value(100000000, 999999999), 'FM000000000'),
+            'IT' || TO_CHAR(cc),
             '+39' || TO_CHAR(DBMS_RANDOM.value(3000000000, 3999999999), 'FM0000000000'),
             DBMS_RANDOM.STRING('U', 10) || '@gmail.com',
             'business',
@@ -36,13 +44,11 @@ BEGIN
             )
         );
     END LOOP;
-    dbms_output.put_line('Customer table populated.');
 END;
 /
 
 CREATE OR REPLACE PROCEDURE populateOperationalCenter(centerCount IN NUMBER) AS
 BEGIN
-    dbms_output.put_line('Populating OperationalCenter table...');
     FOR i in 1..centerCount LOOP
         INSERT INTO OperationalCenterTB VALUES (
             'center-' || DBMS_RANDOM.STRING('U', 10),
@@ -56,75 +62,116 @@ BEGIN
             )
         );
     END LOOP;
-    dbms_output.put_line('OperationalCenter table populated.');
 END;
 /
 
 CREATE OR REPLACE PROCEDURE populateTeam(teamCount IN NUMBER) AS
-cnt NUMBER;
 BEGIN
-    dbms_output.put_line('Populating Team table...');
     FOR i in 1..teamCount LOOP
         INSERT INTO TeamTB VALUES (
-            'T' || TO_CHAR(DBMS_RANDOM.value(100000, 999999), 'FM000000'),
+            RAWTOHEX(SYS_GUID()),
             'team-' || DBMS_RANDOM.STRING('U', 10),
             0,
             0,
             (SELECT * FROM (SELECT REF(o) FROM OperationalCenterTB o ORDER BY dbms_random.value()) FETCH FIRST 1 ROW ONLY)
         );
     END LOOP;
-    dbms_output.put_line('Team table populated.');
 END;
 /
 
 CREATE OR REPLACE PROCEDURE populateEmployee(employeeCount IN NUMBER) AS
+    maxE NUMBER;
+    TYPE refTeamTB IS TABLE OF REF TeamTY INDEX BY PLS_INTEGER;
+    teams refTeamTB;
+    currentTeamIndex PLS_INTEGER := 1;
+    employeesInCurrentTeam NUMBER := 0;
+    cc VARCHAR2(15);
 BEGIN
-    dbms_output.put_line('Populating Employee table...');
+    SELECT NVL(MAX(TO_NUMBER(SUBSTR(e.FC, 2))), 0) INTO maxE FROM EmployeeTB e;
+    
+    -- Bulk collect all teams
+    SELECT REF(t) BULK COLLECT INTO teams
+    FROM TeamTB t;
+
     FOR i in 1..employeeCount LOOP
+        -- If current team has 7 employees, move to next team
+        IF employeesInCurrentTeam = 7 THEN
+            currentTeamIndex := currentTeamIndex + 1;
+            employeesInCurrentTeam := 0;
+            -- Exit if no more teams available
+            IF currentTeamIndex > teams.COUNT THEN
+                EXIT;
+            END IF;
+        END IF;
+
+        cc := LPAD(TO_CHAR(maxE + i), 15, '0');
         INSERT INTO EmployeeTB VALUES (
-            'E' || DBMS_RANDOM.STRING('U', 15),
+            'E' || TO_CHAR(cc),
             DBMS_RANDOM.STRING('U', 10),
             DBMS_RANDOM.STRING('U', 10),
             TO_DATE(
-                TRUNC(DBMS_RANDOM.VALUE(TO_CHAR(DATE '1970-01-01', 'J'), TO_CHAR(DATE '2000-12-31', 'J'))),
+                TRUNC(DBMS_RANDOM.VALUE(TO_CHAR(DATE '1980-01-01', 'J'), TO_CHAR(DATE '1999-01-01', 'J'))),
                 'J'
             ),
             '+39' || TO_CHAR(DBMS_RANDOM.value(3000000000, 3999999999), 'FM0000000000'),
             DBMS_RANDOM.STRING('U', 10) || '@gmail.com',
-            (SELECT * FROM (SELECT REF(t) FROM TeamTB t ORDER BY dbms_random.value()) FETCH FIRST 1 ROW ONLY)
+            teams(currentTeamIndex)
         );
+        employeesInCurrentTeam := employeesInCurrentTeam + 1;
     END LOOP;
-    dbms_output.put_line('Employee table populated.');
 END;
 /
 
-CREATE OR REPLACE PROCEDURE populateBusinessAccount(accountCount IN NUMBER) AS
-x NUMBER;
+create or replace PROCEDURE populateBusinessAccount (numAccount IN NUMBER) AUTHID CURRENT_USER AS
+    TYPE refCustomerTB IS TABLE OF REF CUSTOMERTY INDEX BY PLS_INTEGER;
+    customers refCustomerTB;
+    randCustomer REF CUSTOMERTY;
+    randIndex PLS_INTEGER;
 BEGIN
-    dbms_output.put_line('Populating BusinessAccount table...');
-    FOR i in 1..accountCount LOOP
-        INSERT INTO BusinessAccountTB VALUES (
-            'B' ||  TO_CHAR(DBMS_RANDOM.value(100000000, 999999999), 'FM000000000'),
-            TO_DATE(
-                TRUNC(DBMS_RANDOM.VALUE(TO_CHAR(DATE '2010-01-01', 'J'), TO_CHAR(DATE '2020-12-31', 'J'))),
-                'J'
-            ),
-            (SELECT * FROM (SELECT REF(c) FROM CustomerTB c WHERE c.type = 'business' ORDER BY dbms_random.value()) FETCH FIRST 1 ROW ONLY)
+    -- Fetch all customer refs into the collection
+    SELECT REF(c) BULK COLLECT INTO customers FROM CustomerTB c;
+
+    FOR i IN 1..numAccount LOOP
+        randIndex := TRUNC(DBMS_RANDOM.VALUE(customers.FIRST, customers.LAST));
+        randCustomer := customers(randIndex);
+
+        insert into businessaccounttb values
+        (
+            RAWTOHEX(SYS_GUID()),
+            sysdate,
+            randCustomer
         );
     END LOOP;
-    dbms_output.put_line('BusinessAccount table populated.');
 END;
+
 /
 
 CREATE OR REPLACE PROCEDURE populateOrder(orderCount IN NUMBER, probability IN NUMBER) AS
-    empTeam TeamTY;
+    TYPE refBusinessAccountTB IS TABLE OF REF BusinessAccountTY INDEX BY PLS_INTEGER;
+    businessAccounts refBusinessAccountTB;
+    randBA REF BusinessAccountTY;
+
+    TYPE refTeamTB IS TABLE OF REF TeamTY INDEX BY PLS_INTEGER;
+    teams refTeamTB;
+    randTeam REF TeamTY;
+
+    randIndexB PLS_INTEGER;
+    randIndexT PLS_INTEGER;
+
 BEGIN
-    dbms_output.put_line('Populating Order table...');
+    SELECT REF(b) BULK COLLECT INTO businessAccounts FROM BusinessAccountTB b;
+
+    SELECT REF(t) BULK COLLECT INTO teams FROM TeamTB t;
+
     FOR i in 1..orderCount LOOP
-        -- 50% probability of having a team
-        IF DBMS_RANDOM.VALUE(0, 1) < probability THEN
+        -- Probability of having a team
+        randIndexB := TRUNC(DBMS_RANDOM.VALUE(businessAccounts.FIRST, businessAccounts.LAST));
+        randBA := businessAccounts(randIndexB);
+        IF DBMS_RANDOM.VALUE(0, 1) <= probability THEN
+            randIndexT := TRUNC(DBMS_RANDOM.VALUE(teams.FIRST, teams.LAST));
+            randTeam := teams(randIndexT);
             INSERT INTO OrderTB VALUES (
-                'O' || TO_CHAR(DBMS_RANDOM.value(100000000, 999999999), 'FM000000000'),
+                RAWTOHEX(SYS_GUID()),
                 TO_DATE(
                     TRUNC(DBMS_RANDOM.VALUE(TO_CHAR(DATE '2010-01-01', 'J'), TO_CHAR(DATE '2020-12-31', 'J'))), 'J'),
                 CASE
@@ -137,16 +184,16 @@ BEGIN
                     WHEN DBMS_RANDOM.VALUE(0, 1) < 0.66 THEN 'urgent'
                     ELSE 'bulk'
                 END,
-                DBMS_RANDOM.VALUE(1, 10000),
-                (SELECT * FROM (SELECT REF(b) FROM BusinessAccountTB b ORDER BY dbms_random.value()) FETCH FIRST 1 ROW ONLY),
-                (SELECT * FROM (SELECT REF(t) FROM TeamTB t ORDER BY dbms_random.value()) FETCH FIRST 1 ROW ONLY),
+                DBMS_RANDOM.VALUE(1, 1000),
+                randBA,
+                randTeam,
                 NULL,
                 NULL,
                 NULL
             );
         ELSE
             INSERT INTO OrderTB VALUES (
-                'O' || TO_CHAR(DBMS_RANDOM.value(100000000, 999999999), 'FM000000000'),
+                RAWTOHEX(SYS_GUID()),
                 TO_DATE(
                     TRUNC(DBMS_RANDOM.VALUE(TO_CHAR(DATE '2010-01-01', 'J'), TO_CHAR(DATE '2020-12-31', 'J'))), 'J'),
                 CASE
@@ -159,8 +206,8 @@ BEGIN
                     WHEN DBMS_RANDOM.VALUE(0, 1) < 0.66 THEN 'urgent'
                     ELSE 'bulk'
                 END,
-                DBMS_RANDOM.VALUE(1, 10000),
-                (SELECT * FROM (SELECT REF(b) FROM BusinessAccountTB b ORDER BY dbms_random.value()) FETCH FIRST 1 ROW ONLY),
+                DBMS_RANDOM.VALUE(1, 1000),
+                randBA,
                 NULL,
                 NULL,
                 NULL,
@@ -168,16 +215,12 @@ BEGIN
             );
         END IF;
     END LOOP;
-    dbms_output.put_line('Order table populated.');
 END;
 /
 
 CREATE OR REPLACE PROCEDURE populateEmployeeInOrder(probability IN NUMBER) AS
-    teamRef REF TeamTY;
 BEGIN
-    dbms_output.put_line('Populating Employee in Order...');
     FOR orderRow IN (SELECT o.ID, DEREF(o.team) AS team FROM OrderTB o WHERE o.team IS NOT NULL AND o.completionDate IS NULL AND o.feedback IS NULL) LOOP
-        -- Only process orders based on probability
         IF DBMS_RANDOM.VALUE(0, 1) <= probability THEN
             -- Create temporary varray
             DECLARE
@@ -208,7 +251,6 @@ BEGIN
             END;
         END IF;
     END LOOP;
-    dbms_output.put_line('Employee in Order populated.');
 END;
 /
 
@@ -217,7 +259,6 @@ v_team_id VARCHAR2(50);
 v_team_name VARCHAR2(50);
 v_team_score NUMBER;
 BEGIN
-    dbms_output.put_line('Populating Completion Date and Feedback in Order...');
     FOR orderRow IN (SELECT o.ID FROM OrderTB o WHERE o.team IS NOT NULL AND o.completionDate IS NULL AND O.feedback IS NULL) LOOP
         -- Only process orders based on probability
         IF DBMS_RANDOM.VALUE(0, 1) <= probability THEN
@@ -237,33 +278,44 @@ BEGIN
             )
             WHERE o.ID = orderRow.ID;
 
-            -- Select id, name and performancescore of the team just updated
             SELECT t.ID, t.name, t.performanceScore
             INTO v_team_id, v_team_name, v_team_score
             FROM TeamTB t
             WHERE t.ID = (SELECT DEREF(o.team).ID FROM OrderTB o WHERE o.ID = orderRow.ID);
-        
-            -- print the team id, name and performance score
-            -- dbms_output.put_line('Team ' || v_team_id || ' (' || v_team_name || ') has performance score ' || v_team_score);
         END IF;
     END LOOP;
-    dbms_output.put_line('Completion Date and Feedback in Order populated.');
 END;
 /
 
 BEGIN
     dbms_output.put_line('Starting population...');
-    populateCustomer(100, 100);
-    populateOperationalCenter(10);
-    populateBusinessAccount(100);
-    populateTeam(100); 
-    populateEmployee(100);
-    populateOrder(1000, 0.5);
-    populateEmployeeInOrder(0.5);
-    populateCompletionDateAndFeedbackInOrder(0.2);
+    populateCustomer(18000, 2000);
+    populateOperationalCenter(15);
+    populateBusinessAccount(10000); -- 20000 are created in populateCustomer
+    populateTeam(150); 
+    populateEmployee(250);
+    --EXECUTE IMMEDIATE 'ALTER TRIGGER ComputePerformanceScore DISABLE';
+    populateOrder(45100, 0.9);
+    populateEmployeeInOrder(0.1);
+    populateCompletionDateAndFeedbackInOrder(0.1);
+    --EXECUTE IMMEDIATE 'ALTER TRIGGER ComputePerformanceScore ENABLE';
     dbms_output.put_line('Population completed.');
+
+    -- trigger ComputePerformanceScore by updating feedback in the first order
+    --UPDATE OrderTB
+    --SET feedback = FeedbackTY(5, 'Great service!')
+    --WHERE ID = (SELECT ID FROM OrderTB o WHERE o.completionDate IS NOT NULL FETCH FIRST 1 ROW ONLY);
 END;
 /
+
+-- count tuple in customer, oc, businessacc, team, employee, order
+-- SELECT COUNT(*) FROM CustomerTB;
+-- SELECT COUNT(*) FROM OperationalCenterTB;
+-- SELECT COUNT(*) FROM BusinessAccountTB;
+-- SELECT COUNT(*) FROM TeamTB;
+-- SELECT COUNT(*) FROM EmployeeTB;
+-- SELECT COUNT(*) FROM OrderTB;
+-- /
 
 SELECT ID, numOrder 
 FROM TeamTB 
@@ -290,7 +342,7 @@ WHERE numOrder = (SELECT MAX(numOrder) FROM TeamTB) FETCH FIRST 1 ROW ONLY);
 
 SELECT COUNT(*) from orderTB o where o.team IS NULL;
 SELECT COUNT(*) from orderTB o where o.team IS NOT NULL;
-
+/
 
 commit work;
 /
