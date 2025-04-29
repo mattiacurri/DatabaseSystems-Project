@@ -1,6 +1,7 @@
 import oracledb
 
 def get_connection():
+    # Obviously in production these are going to be placed in a .env file
     connection = oracledb.connect(
         user = 'SYSTEM',
         password = 'password123',
